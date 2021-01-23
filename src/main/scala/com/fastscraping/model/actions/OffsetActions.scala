@@ -8,13 +8,13 @@ case class OffsetActions(action: String,
                          xOffset: Int,
                          yOffset: Int,
                          selector: Option[String],
-                         times: Int = 1,
-                         pauseBeforeActionMillis: Long = 100L) extends Actions {
+                         times: Option[Int] = Some(1),
+                         pauseBeforeActionMillis: Option[Long] = None) extends Actions {
 
   override val name = s"Action_${action}_ByOffset_$xOffset,$yOffset"
 
   override def perform(actionPerformer: ActionPerformer): Unit = performMultiple {
-    TimeActions(pauseBeforeActionMillis).perform(actionPerformer)
+    TimeActions(pauseBeforeActionMillis.getOrElse(100L)).perform(actionPerformer)
 
     ActionNames.withName(action) match {
       case MOVE_TO_ELEMENT =>

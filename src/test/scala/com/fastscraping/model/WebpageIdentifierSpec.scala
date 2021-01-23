@@ -72,7 +72,7 @@ class WebpageIdentifierSpec extends WordSpecLike {
       assert(jsonString.contains("actionsAndScrapeData"))
     }
 
-    /*"read json to create ScrapingJob" in {
+    "read json to create ScrapingJob" in {
       val jsonText =
         """
           |{
@@ -97,6 +97,6 @@ class WebpageIdentifierSpec extends WordSpecLike {
 
       val scrapingJob = Json.parse(jsonText).asOpt[WebpageIdentifier]
       assert(scrapingJob.isDefined)
-    }*/
+    }
   }
 }

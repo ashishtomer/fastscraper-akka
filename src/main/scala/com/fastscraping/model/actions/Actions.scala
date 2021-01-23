@@ -11,11 +11,11 @@ trait Actions extends ActionsAndScrapeData {
 
   def perform(actionPerformer: ActionPerformer)
 
-  val times: Int
+  val times: Option[Int]
 
-  def performMultiple(f: => Any): Unit = for (_ <- 0 to times) (f)
+  def performMultiple(f: => Any): Unit = for (_ <- 0 to times.getOrElse(1)) (f)
 
-  val pauseBeforeActionMillis: Long
+  val pauseBeforeActionMillis: Option[Long]
 
   def withKeyDownChecked[A](performer: ActionPerformer)(f: => A): A = {
     if (Actions.keyDown.isDefined) {

@@ -30,7 +30,7 @@ object HttpListeningActor {
           Seq(
             SelectorActions("CLICK", Some("input")),
             KeySelectorActions("SEND_KEYS", "Badshah Music", None),
-            KeySelectorActions("SEND_KEYS", "ARROW_DOWN", None, 5),
+            KeySelectorActions("SEND_KEYS", "ARROW_DOWN", None, Some(5)),
             KeySelectorActions("SEND_KEYS", "ENTER", None),
           )
         )

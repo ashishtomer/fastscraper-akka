@@ -6,13 +6,13 @@ import play.api.libs.json.{Format, Json}
 
 case class SelectorActions(action: String,
                            selector: Option[String],
-                           times: Int = 1,
-                           pauseBeforeActionMillis: Long = 100L) extends Actions {
+                           times: Option[Int] = Some(1),
+                           pauseBeforeActionMillis: Option[Long] = None) extends Actions {
 
   override val name = s"Action_${action}_On_$selector"
 
   override def perform(actionPerformer: ActionPerformer): Unit = performMultiple {
-    TimeActions(pauseBeforeActionMillis).perform(actionPerformer)
+    TimeActions(pauseBeforeActionMillis.getOrElse(100L)).perform(actionPerformer)
     withKeyDownChecked(actionPerformer) {
       ActionNames.withName(action) match {
         case CLICK =>

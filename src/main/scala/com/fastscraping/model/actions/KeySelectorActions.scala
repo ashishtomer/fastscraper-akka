@@ -9,13 +9,13 @@ import play.api.libs.json.{Format, Json}
 case class KeySelectorActions(action: String,
                               key: String,
                               selector: Option[String],
-                              times: Int = 1,
-                              pauseBeforeActionMillis: Long = 100L) extends Actions {
+                              times: Option[Int] = Some(1),
+                              pauseBeforeActionMillis: Option[Long] = None) extends Actions {
 
   override val name = s"Action_${action}_WithKey_$key"
 
   override def perform(actionPerformer: ActionPerformer): Unit = {
-    TimeActions(pauseBeforeActionMillis).perform(actionPerformer)
+    TimeActions(pauseBeforeActionMillis.getOrElse(100L)).perform(actionPerformer)
     ActionNames.withName(action) match {
       case KEY_DOWN =>
         if (selector.isDefined) {

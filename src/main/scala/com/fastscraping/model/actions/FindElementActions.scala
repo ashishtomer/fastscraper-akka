@@ -11,8 +11,8 @@ case class FindElementActions(action: String,
                               findElementBy: String,
                               value: String,
                               multiple: Boolean = false,
-                              times: Int = 1,
-                              pauseBeforeActionMillis: Long = 100L) extends Actions {
+                              times: Option[Int] = Some(1),
+                              pauseBeforeActionMillis: Option[Long] = None) extends Actions {
 
   import FindElementBy._
 
@@ -77,7 +77,7 @@ case class FindElementActions(action: String,
   }
 
   override def perform(actionPerformer: ActionPerformer): Unit = performMultiple {
-    TimeActions(pauseBeforeActionMillis).perform(actionPerformer)
+    TimeActions(pauseBeforeActionMillis.getOrElse(100L)).perform(actionPerformer)
     withElements(actionPerformer) { elements =>
       ActionNames.withName(action) match {
         case CLICK => elements.foreach(e => e.click())
