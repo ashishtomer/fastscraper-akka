@@ -24,21 +24,9 @@ libraryDependencies ++= Seq(
 )
 
 lazy val root = (project in file("."))
+  .enablePlugins(UniversalPlugin, DockerPlugin, JavaAppPackaging)
   .settings(
     name := "fastscraper",
     scalaVersion := "2.13.3",
     version := projectVersion,
-    mainClass := Some("com.fastscraping.AppBootstraper"),
-    assemblyJarName in assembly := s"fastscraper-$projectVersion.jar"
   )
-
-assemblyMergeStrategy in assembly := {
-  case "module-info.class" => MergeStrategy.discard
-  case x => (assemblyMergeStrategy in assembly).value(x)
-}
-
-(assembly in Compile) := {
-  val jar = (assembly in Compile).value
-
-  jar
-}

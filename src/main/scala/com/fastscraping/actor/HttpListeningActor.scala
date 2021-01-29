@@ -40,7 +40,7 @@ object HttpListeningActor {
       }
     }
 
-    val bindingFuture = Http().newServerAt("localhost", 8080).bind(route)
+    val bindingFuture = Http().newServerAt("localhost", 8082).bind(route)
 
   }
 
