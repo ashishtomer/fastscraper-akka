@@ -1,5 +1,6 @@
 package com.fastscraping.model
 
+import com.fastscraping.pagenavigation.ActionsAndScrapeData
 import play.api.libs.json.Json
 
 case class WebpageIdentifier(urlRegex: String,

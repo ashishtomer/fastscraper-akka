@@ -6,8 +6,10 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity}
 import akka.http.scaladsl.server.Directives._
 import com.fastscraping.actor.message.{LinkManagerActorMessage, ScrapeJob}
-import com.fastscraping.model.actions.{KeySelectorActions, SelectorActions}
-import com.fastscraping.model.{UniqueTag, WebpageIdentifier}
+import com.fastscraping.model.ScrapeDataTypes._
+import com.fastscraping.model.{DataToExtract, UniqueTag, WebpageIdentifier}
+import com.fastscraping.pagenavigation.action.{KeySelectorActions, SelectorActions}
+import com.fastscraping.pagenavigation.scrape.ScrapeData
 
 object HttpListeningActor {
 
@@ -28,6 +30,7 @@ object HttpListeningActor {
           uniqueStringOnPage = Some("हिन्दी"),
           UniqueTag("img#hplogo", None),
           Seq(
+            ScrapeData("span.ytd-mini-guide-entry-renderer", DataToExtract("section", TEXT)),
             SelectorActions("CLICK", Some("input")),
             KeySelectorActions("SEND_KEYS", "Badshah Music", None),
             KeySelectorActions("SEND_KEYS", "ARROW_DOWN", None, Some(5)),

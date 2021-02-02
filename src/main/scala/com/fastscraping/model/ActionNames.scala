@@ -1,4 +1,4 @@
-package com.fastscraping.model.actions
+package com.fastscraping.model
 
 object ActionNames extends Enumeration {
   type ActionNames = Value

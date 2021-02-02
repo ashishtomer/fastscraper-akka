@@ -1,6 +1,7 @@
-package com.fastscraping.model.actions
+package com.fastscraping.pagenavigation.action
 
-import com.fastscraping.pageaction.ActionPerformer
+import com.fastscraping.model.ActionNames
+import com.fastscraping.pagenavigation.ActionPerformer
 import play.api.libs.json.{Format, Json}
 
 case class DragAndDropActions(action: String,

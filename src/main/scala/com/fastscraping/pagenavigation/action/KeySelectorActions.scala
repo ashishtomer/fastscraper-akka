@@ -1,7 +1,8 @@
-package com.fastscraping.model.actions
+package com.fastscraping.pagenavigation.action
 
-import com.fastscraping.model.actions.ActionNames._
-import com.fastscraping.pageaction.ActionPerformer
+import com.fastscraping.model.ActionNames
+import com.fastscraping.model.ActionNames._
+import com.fastscraping.pagenavigation.ActionPerformer
 import org.openqa.selenium.Keys
 import play.api.libs.json.{Format, Json}
 

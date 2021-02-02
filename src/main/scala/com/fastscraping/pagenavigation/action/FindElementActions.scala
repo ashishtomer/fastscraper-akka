@@ -1,8 +1,9 @@
-package com.fastscraping.model.actions
+package com.fastscraping.pagenavigation.action
 
-import com.fastscraping.model.actions.ActionNames._
-import com.fastscraping.pageaction.ActionPerformer
-import com.fastscraping.reader.ElementFinder.FindElementBy
+import com.fastscraping.model.ActionNames
+import com.fastscraping.model.ActionNames._
+import com.fastscraping.pagenavigation.ActionPerformer
+import com.fastscraping.pagenavigation.selenium.ElementFinder.FindElementBy
 import com.fastscraping.utils.ExHelpers.getElement
 import org.openqa.selenium.WebElement
 import play.api.libs.json.{Format, Json}

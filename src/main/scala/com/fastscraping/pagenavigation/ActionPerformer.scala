@@ -1,6 +1,6 @@
-package com.fastscraping.pageaction
+package com.fastscraping.pagenavigation
 
-import com.fastscraping.reader.PageReader
+import com.fastscraping.pagenavigation.selenium.PageReader
 import com.fastscraping.utils.ElementNotFoundException
 import org.openqa.selenium.WebElement
 import org.openqa.selenium.interactions.Actions

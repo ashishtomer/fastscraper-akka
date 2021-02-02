@@ -6,7 +6,7 @@ import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.{AbstractBehavior, ActorContext, Behaviors}
 import com.fastscraping.actor.message.{ScrapeWebpage, WorkerActorMessage}
 import com.fastscraping.model.WebpageIdentifier
-import com.fastscraping.reader.{PageReader, ScrapeJobExecutor}
+import com.fastscraping.pagenavigation.selenium.{PageReader, ScrapeJobExecutor}
 import org.openqa.selenium.firefox.FirefoxDriver
 
 /**
@@ -48,5 +48,4 @@ class WorkerActor(context: ActorContext[WorkerActorMessage]) extends AbstractBeh
 
 object WorkerActor {
   def apply() = Behaviors.setup[WorkerActorMessage](context => new WorkerActor(context))
-
 }

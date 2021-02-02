@@ -1,7 +1,6 @@
-package com.fastscraping.model.actions
+package com.fastscraping.pagenavigation.action
 
-import com.fastscraping.model.ActionsAndScrapeData
-import com.fastscraping.pageaction.ActionPerformer
+import com.fastscraping.pagenavigation.{ActionPerformer, ActionsAndScrapeData}
 import com.fastscraping.utils.JsonParsingException
 import play.api.libs.json._
 

@@ -1,7 +1,8 @@
-package com.fastscraping.model.actions
+package com.fastscraping.pagenavigation.action
 
-import com.fastscraping.model.actions.ActionNames.{DRAG_AND_DROP_BY, MOVE_BY_OFFSET, MOVE_TO_ELEMENT}
-import com.fastscraping.pageaction.ActionPerformer
+import com.fastscraping.model.ActionNames
+import com.fastscraping.model.ActionNames.{DRAG_AND_DROP_BY, MOVE_BY_OFFSET, MOVE_TO_ELEMENT}
+import com.fastscraping.pagenavigation.ActionPerformer
 import play.api.libs.json.{Format, Json}
 
 case class OffsetActions(action: String,

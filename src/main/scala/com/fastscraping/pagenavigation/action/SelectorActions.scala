@@ -1,7 +1,8 @@
-package com.fastscraping.model.actions
+package com.fastscraping.pagenavigation.action
 
-import com.fastscraping.model.actions.ActionNames.{CLICK, CLICK_AND_HOLD, CONTEXT_CLICK, DOUBLE_CLICK, MOUSE_OVER_ELEMENT, MOVE_TO_ELEMENT, RELEASE, RIGHT_CLICK}
-import com.fastscraping.pageaction.ActionPerformer
+import com.fastscraping.model.ActionNames
+import com.fastscraping.model.ActionNames.{CLICK, CLICK_AND_HOLD, CONTEXT_CLICK, DOUBLE_CLICK, MOUSE_OVER_ELEMENT, MOVE_TO_ELEMENT, RELEASE, RIGHT_CLICK}
+import com.fastscraping.pagenavigation.ActionPerformer
 import play.api.libs.json.{Format, Json}
 
 case class SelectorActions(action: String,

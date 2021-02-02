@@ -1,22 +1,22 @@
-package com.fastscraping.reader
+package com.fastscraping.pagenavigation.selenium
 
-import com.fastscraping.model.actions.{Actions, TimeActions}
-import com.fastscraping.model.{ScrapeData, WebpageIdentifier}
-import com.fastscraping.pageaction.ActionPerformer
+import com.fastscraping.data.Database
+import com.fastscraping.pagenavigation.action.{Actions, TimeActions, WithPause}
+import com.fastscraping.model.WebpageIdentifier
+import com.fastscraping.pagenavigation.{ActionPerformer, Scraper}
+import com.fastscraping.pagenavigation.scrape.ScrapeData
 import com.fastscraping.utils.{IncorrectScrapeJob, MultipleMatchingIdentifiersException}
-import play.api.libs.json.Json
 
 class ScrapeJobExecutor(pageReader: PageReader) {
 
   val actionPerformer = new ActionPerformer(pageReader)
+  val scraper = new Scraper(pageReader, new Database{})
   val timerAction = new TimeActions(100)
 
   def execute(webpageIdentifiers: Seq[WebpageIdentifier]) = {
     if (webpageIdentifiers.isEmpty) {
       throw IncorrectScrapeJob("No web page identifier found")
     }
-
-    println(s"${Json.prettyPrint(Json.toJson(webpageIdentifiers))}")
 
     filterPageModifier(webpageIdentifiers) match {
       case Some(webpageIdentifier) => performOperations(webpageIdentifier)
@@ -25,12 +25,13 @@ class ScrapeJobExecutor(pageReader: PageReader) {
   }
 
   private def performOperations(webpageIdentifier: WebpageIdentifier) = {
-    webpageIdentifier.actionsAndScrapeData.map {
-      case action: Actions =>
-        println(s"Performing action ${action.name}")
-        timerAction.perform(actionPerformer)
-        action.perform(actionPerformer)
-      case scrapeData: ScrapeData =>
+    webpageIdentifier.actionsAndScrapeData.map { workForPage =>
+      WithPause(actionPerformer) {
+        workForPage match {
+          case actions: Actions => actions.perform(actionPerformer)
+          case scrapeData: ScrapeData => scrapeData.extractData(scraper)
+        }
+      }
     }
   }
 

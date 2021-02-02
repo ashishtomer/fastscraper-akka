@@ -1,4 +1,4 @@
-package com.fastscraping.reader
+package com.fastscraping.pagenavigation.selenium
 
 import com.google.common.annotations.Beta
 import org.openqa.selenium.Cookie

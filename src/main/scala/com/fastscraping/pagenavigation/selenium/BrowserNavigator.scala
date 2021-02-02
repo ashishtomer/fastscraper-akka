@@ -1,4 +1,4 @@
-package com.fastscraping.reader
+package com.fastscraping.pagenavigation.selenium
 
 import java.net.URL
 
