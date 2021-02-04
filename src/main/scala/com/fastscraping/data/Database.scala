@@ -1,7 +1,11 @@
 package com.fastscraping.data
 
 trait Database {
-  def saveText(key: String, text: String): Unit = {
-    println(s"The data is saved under key: $key. >> $text")
-  }
+  /**
+   * @param index The index (or table or collection) in the database
+   * @param column Name of the column under which the text will be stored
+   * @param text The text data itself
+   * @param documentId Find the document with `documentId` and save text under
+   */
+  def saveText(index: String, documentId: String, column: String, text: String)
 }
