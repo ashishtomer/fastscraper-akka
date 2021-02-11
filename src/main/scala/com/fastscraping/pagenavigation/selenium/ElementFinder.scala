@@ -67,11 +67,11 @@ trait ElementFinder {
   }
 
   def findElementByXPath(xPath: String)(implicit contextElement: Option[Element]): Option[WebElement] = {
-    driver findOne By.tagName(xPath)
+    driver findOne By.xpath(xPath)
   }
 
   def findElementsByXPath(xPath: String)(implicit contextElement: Option[Element]): Seq[WebElement] = {
-    driver findMany By.tagName(xPath)
+    driver findMany By.xpath(xPath)
   }
 
   def findElementByText(partialText: String)(implicit contextElement: Option[Element]): Option[WebElement] = {

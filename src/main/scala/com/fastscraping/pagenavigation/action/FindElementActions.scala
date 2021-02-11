@@ -68,10 +68,11 @@ case class FindElementActions(action: String,
           Seq(getElement(performer.pageReader.findElementByClassName(value))(Some(s"$BY_CLASS_NAME : $value not found")))
         }
       case BY_TEXT =>
+        val xPath = s"//*[contains(text(),'$value')]"
         if(multiple) {
-          performer.pageReader.findElementsByXPath(s"//*[text()='${value}']")
+          performer.pageReader.findElementsByXPath(xPath)
         }else {
-          Seq(getElement(performer.pageReader.findElementByXPath(s"//*[text()='${value}']"))(Some(s"[$BY_TEXT='$value'] not found")))
+          Seq(getElement(performer.pageReader.findElementByXPath(xPath))(Some(s"[$BY_TEXT='$value'] not found")))
         }
       case BY_ID =>
         if (multiple) {
@@ -86,7 +87,7 @@ case class FindElementActions(action: String,
   }
 
   override def perform(actionPerformer: ActionPerformer)(implicit contextElement: Option[Element]): Unit = performMultiple {
-    TimeActions(pauseBeforeActionMillis.getOrElse(100L)).perform(actionPerformer)
+    TimeActions(pauseBeforeActionMillis.getOrElse(1000L)).perform(actionPerformer)
     withElements(actionPerformer) { elements =>
       ActionNames.withName(action) match {
         case CLICK => elements.foreach(e => e.click())
