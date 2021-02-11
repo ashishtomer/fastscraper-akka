@@ -1,16 +1,16 @@
 package com.fastscraping.pagenavigation.selenium
 
-import com.fastscraping.data.Database
+import com.fastscraping.data.{Database, MongoDb}
 import com.fastscraping.pagenavigation.action.{Actions, TimeActions, WithPause}
-import com.fastscraping.model.WebpageIdentifier
+import com.fastscraping.model.{Element, PageWork, WebpageIdentifier}
 import com.fastscraping.pagenavigation.{ActionPerformer, Scraper}
 import com.fastscraping.pagenavigation.scrape.ScrapeData
 import com.fastscraping.utils.{IncorrectScrapeJob, MultipleMatchingIdentifiersException}
 
 class ScrapeJobExecutor(pageReader: PageReader) {
 
-  val actionPerformer = new ActionPerformer(pageReader)
-  val scraper = new Scraper(pageReader, new Database{})
+  val actionPerformer = ActionPerformer(pageReader)
+  val scraper = Scraper(pageReader, MongoDb("127.0.0.1", 27017))
   val timerAction = new TimeActions(100)
 
   def execute(webpageIdentifiers: Seq[WebpageIdentifier]) = {
@@ -25,17 +25,19 @@ class ScrapeJobExecutor(pageReader: PageReader) {
   }
 
   private def performOperations(webpageIdentifier: WebpageIdentifier) = {
-    webpageIdentifier.actionsAndScrapeData.map { workForPage =>
+    webpageIdentifier.pageWorks.map { pageWork =>
       WithPause(actionPerformer) {
-        workForPage match {
-          case actions: Actions => actions.perform(actionPerformer)
-          case scrapeData: ScrapeData => scrapeData.extractData(scraper)
+        pageWork match {
+          case PageWork(actions: Actions, contextElement) => actions.perform(actionPerformer)(contextElement)
+          case PageWork(scrapeData: ScrapeData, contextElement) => scrapeData.extractData(scraper)(contextElement)
         }
       }
     }
   }
 
   private def filterPageModifier[M](webpageIdentifiers: Seq[WebpageIdentifier]) = {
+    implicit val contextElement: Option[Element] = None
+
     val identifierWithScore = webpageIdentifiers map { pageIdentifier =>
 
       val urlRegexMatched = pageReader.getCurrentUrl matches pageIdentifier.urlRegex

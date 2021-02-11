@@ -29,7 +29,7 @@ import org.openqa.selenium.firefox.FirefoxDriver
  */
 class WorkerActor(context: ActorContext[WorkerActorMessage]) extends AbstractBehavior[WorkerActorMessage](context) {
   private val driver = new FirefoxDriver()
-  driver.manage().timeouts().pageLoadTimeout(5, TimeUnit.SECONDS).implicitlyWait(5, TimeUnit.SECONDS)
+  driver.manage().timeouts().pageLoadTimeout(60, TimeUnit.SECONDS).implicitlyWait(5, TimeUnit.SECONDS)
   private val pageReader = PageReader(driver)
   private val scrapeJobExecutor = ScrapeJobExecutor(pageReader)
 

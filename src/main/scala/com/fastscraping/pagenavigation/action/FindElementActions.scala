@@ -1,6 +1,6 @@
 package com.fastscraping.pagenavigation.action
 
-import com.fastscraping.model.ActionNames
+import com.fastscraping.model.{ActionNames, Element}
 import com.fastscraping.model.ActionNames._
 import com.fastscraping.pagenavigation.ActionPerformer
 import com.fastscraping.pagenavigation.selenium.ElementFinder.FindElementBy
@@ -19,7 +19,9 @@ case class FindElementActions(action: String,
 
   override val name = s"${action}_$findElementBy"
 
-  private def withElements[A](performer: ActionPerformer)(f: Seq[WebElement] => A): A = {
+  private def withElements[A](performer: ActionPerformer)(f: Seq[WebElement] => A)(
+    implicit contextElement: Option[Element]): A = {
+
     val elems: Seq[WebElement] = FindElementBy.withName(findElementBy) match {
       case BY_X_PATH =>
         if (multiple) {
@@ -65,6 +67,12 @@ case class FindElementActions(action: String,
         } else {
           Seq(getElement(performer.pageReader.findElementByClassName(value))(Some(s"$BY_CLASS_NAME : $value not found")))
         }
+      case BY_TEXT =>
+        if(multiple) {
+          performer.pageReader.findElementsByXPath(s"//*[text()='${value}']")
+        }else {
+          Seq(getElement(performer.pageReader.findElementByXPath(s"//*[text()='${value}']"))(Some(s"[$BY_TEXT='$value'] not found")))
+        }
       case BY_ID =>
         if (multiple) {
           performer.pageReader.findElementsById(value)
@@ -77,7 +85,7 @@ case class FindElementActions(action: String,
     f(elems)
   }
 
-  override def perform(actionPerformer: ActionPerformer): Unit = performMultiple {
+  override def perform(actionPerformer: ActionPerformer)(implicit contextElement: Option[Element]): Unit = performMultiple {
     TimeActions(pauseBeforeActionMillis.getOrElse(100L)).perform(actionPerformer)
     withElements(actionPerformer) { elements =>
       ActionNames.withName(action) match {

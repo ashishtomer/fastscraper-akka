@@ -1,5 +1,6 @@
 package com.fastscraping.pagenavigation
 
+import com.fastscraping.model.Element
 import com.fastscraping.pagenavigation.selenium.PageReader
 import com.fastscraping.utils.ElementNotFoundException
 import org.openqa.selenium.WebElement
@@ -11,7 +12,7 @@ class ActionPerformer(val pageReader: PageReader) {
 
   private val actions = new Actions(pageReader.driver)
 
-  case class WithElement(selector: String) {
+  case class WithElement(selector: String)(implicit contextElement: Option[Element]) {
     def map(f: WebElement => Actions): Boolean = {
       val element = pageReader.findElementByCssSelector(selector)
         .getOrElse(throw ElementNotFoundException(s"$selector not found on ${pageReader.getCurrentUrl}"))
@@ -36,32 +37,31 @@ class ActionPerformer(val pageReader: PageReader) {
     }
   }
 
-  def doubleClick(selector: String): Boolean = {
+  def doubleClick(selector: String)(implicit contextElement: Option[Element]): Boolean = {
     WithElement(selector).map(element => actions.doubleClick(element))
   }
 
-  def doubleClick: Boolean = WithoutElement(actions.doubleClick())
+  def doubleClick(implicit contextElement: Option[Element]): Boolean = WithoutElement(actions.doubleClick())
 
-  def doubleClick(element: WebElement) = actions.doubleClick(element)
+  def doubleClick(element: WebElement)(implicit contextElement: Option[Element]) = actions.doubleClick(element)
 
-  def rightClick(selector: String): Boolean = {
+  def rightClick(selector: String)(implicit contextElement: Option[Element]): Boolean = {
     WithElement(selector).map(element => actions.contextClick(element))
   }
 
-  def rightClick: Boolean = WithoutElement(actions.contextClick())
+  def rightClick(implicit contextElement: Option[Element]): Boolean = WithoutElement(actions.contextClick())
 
   def rightClick(element: WebElement) = {
-    println(s"Right clicking on ${element}")
     actions.contextClick(element)
   }
 
-  def contextClick(selector: String): Boolean = rightClick(selector)
+  def contextClick(selector: String)(implicit contextElement: Option[Element]): Boolean = rightClick(selector)
 
   def contextClick: Boolean = WithoutElement(actions.contextClick())
 
-  def contextClick(element: WebElement) = rightClick(element)
+  def contextClick(element: WebElement)(implicit contextElement: Option[Element]) = rightClick(element)
 
-  def keyDown(selector: String, key: CharSequence): Boolean = {
+  def keyDown(selector: String, key: CharSequence)(implicit contextElement: Option[Element]): Boolean = {
     WithElement(selector).map(element => actions.keyDown(element, key))
   }
 
@@ -69,7 +69,7 @@ class ActionPerformer(val pageReader: PageReader) {
 
   def keyDown(element: WebElement, charSequence: CharSequence) = actions.keyDown(element, charSequence)
 
-  def keyUp(selector: String, key: CharSequence): Boolean = {
+  def keyUp(selector: String, key: CharSequence)(implicit contextElement: Option[Element]): Boolean = {
     WithElement(selector).map(element => actions.keyUp(element, key))
   }
 
@@ -77,7 +77,7 @@ class ActionPerformer(val pageReader: PageReader) {
 
   def keyUp(element: WebElement, charSequence: CharSequence) = actions.keyUp(element, charSequence)
 
-  def sendKeys(selector: String, key: CharSequence): Boolean = {
+  def sendKeys(selector: String, key: CharSequence)(implicit contextElement: Option[Element]): Boolean = {
     WithElement(selector).map(element => actions.sendKeys(element, key))
   }
 
@@ -98,7 +98,7 @@ class ActionPerformer(val pageReader: PageReader) {
    * Clicks (without releasing) in the middle of the given element. This is equivalent to:
    * <i>Actions.moveToElement(onElement).clickAndHold()</i>
    */
-  def clickAndHold(selector: String): Boolean = WithElement(selector).map(element => actions.clickAndHold(element))
+  def clickAndHold(selector: String)(implicit contextElement: Option[Element]): Boolean = WithElement(selector).map(element => actions.clickAndHold(element))
 
   /**
    * Clicks (without releasing) at the current mouse location.
@@ -115,7 +115,7 @@ class ActionPerformer(val pageReader: PageReader) {
    * Invoking this action without invoking clickAndHold() first will result in
    * undefined behaviour.
    */
-  def release(selector: String): Boolean = WithElement(selector).map(element => actions.release(element))
+  def release(selector: String)(implicit contextElement: Option[Element]): Boolean = WithElement(selector).map(element => actions.release(element))
 
   /**
    * Releases the depressed left mouse button at the current mouse location.
@@ -124,7 +124,7 @@ class ActionPerformer(val pageReader: PageReader) {
 
   def release(element: WebElement) = actions.release(element)
 
-  def click(selector: String): Boolean = {
+  def click(selector: String)(implicit contextElement: Option[Element]): Boolean = {
     WithElement(selector).map(element => actions.click(element))
   }
 
@@ -132,7 +132,7 @@ class ActionPerformer(val pageReader: PageReader) {
 
   def click(element: WebElement) = actions.click(element)
 
-  def mouseOverElement(selector: String): Boolean = moveToElement(selector)
+  def mouseOverElement(selector: String)(implicit contextElement: Option[Element]): Boolean = moveToElement(selector)
 
   def mouseOverElement(element: WebElement) = actions.moveToElement(element)
 
@@ -140,13 +140,13 @@ class ActionPerformer(val pageReader: PageReader) {
    * Moves the mouse to the middle of the element. The element is scrolled into view and its
    * location is calculated using getBoundingClientRect.
    */
-  def moveToElement(selector: String): Boolean = WithElement(selector).map(element => actions.moveToElement(element))
+  def moveToElement(selector: String)(implicit contextElement: Option[Element]): Boolean = WithElement(selector).map(element => actions.moveToElement(element))
 
   /**
    * Moves the mouse to an offset from the top-left corner of the element.
    * The element is scrolled into view and its location is calculated using getBoundingClientRect.
    */
-  def moveToElement(selector: String, xOffset: Int, yOffset: Int): Boolean = {
+  def moveToElement(selector: String, xOffset: Int, yOffset: Int)(implicit contextElement: Option[Element]): Boolean = {
     WithElement(selector).map(element => actions.moveToElement(element, xOffset, yOffset))
   }
 
@@ -163,7 +163,7 @@ class ActionPerformer(val pageReader: PageReader) {
    * A convenience method that performs click-and-hold at the location of the source element,
    * moves to the location of the target element, then releases the mouse.
    */
-  def dragAndDrop(fromSelector: String, toSelector: String): Boolean = WithElement(fromSelector).flatMap { from =>
+  def dragAndDrop(fromSelector: String, toSelector: String)(implicit contextElement: Option[Element]): Boolean = WithElement(fromSelector).flatMap { from =>
     WithElement(toSelector).map { to =>
       actions.dragAndDrop(from, to)
     }
@@ -175,7 +175,7 @@ class ActionPerformer(val pageReader: PageReader) {
    * A convenience method that performs click-and-hold at the location of the source element,
    * moves by a given offset, then releases the mouse.
    */
-  def dragAndDropBy(selector: String, xOffset: Int, yOffset: Int): Boolean = WithElement(selector).map { element =>
+  def dragAndDropBy(selector: String, xOffset: Int, yOffset: Int)(implicit contextElement: Option[Element]): Boolean = WithElement(selector).map { element =>
     actions.dragAndDropBy(element, xOffset, yOffset)
   }
 
@@ -185,4 +185,8 @@ class ActionPerformer(val pageReader: PageReader) {
 
   def pause(duration: Duration): Boolean = WithoutElement(actions.pause(java.time.Duration.ofMillis(duration.toMillis)))
 
+}
+
+object ActionPerformer {
+  def apply(pageReader: PageReader): ActionPerformer = new ActionPerformer(pageReader)
 }

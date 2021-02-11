@@ -1,5 +1,7 @@
 package com.fastscraping.pagenavigation.selenium
 
+import com.fastscraping.model.Element
+import com.fastscraping.pagenavigation.selenium.ElementFinder.PageContext
 import org.openqa.selenium.remote.RemoteWebDriver
 import org.openqa.selenium.{By, NoSuchElementException, WebElement}
 
@@ -8,66 +10,126 @@ import scala.jdk.CollectionConverters._
 trait ElementFinder {
   def driver: RemoteWebDriver
 
-  def findElementById(id: String): Option[WebElement] = Optional(driver.findElement(By.id(id)))
-
-  def findElementsById(id: String): Seq[WebElement] = driver.findElements(By.id(id)).asScala.toSeq
-
-  def findElementByClassName(className: String): Option[WebElement] = {
-    Optional(driver.findElement(By.className(className)))
+  def findElementById(id: String)(implicit contextElement: Option[Element]): Option[WebElement] = {
+    driver findOne By.id(id)
   }
 
-  def findElementsByClassName(className: String): Seq[WebElement] = {
-    driver.findElements(By.className(className)).asScala.toSeq
+  def findElementsById(id: String)(implicit contextElement: Option[Element]): Seq[WebElement] = {
+    driver findMany By.id(id)
   }
 
-  def findElementByLinkText(linkText: String): Option[WebElement] = Optional(driver.findElement(By.linkText(linkText)))
-
-
-  def findElementsByLinkText(linkText: String): Seq[WebElement] = {
-    driver.findElements(By.linkText(linkText)).asScala.toSeq
+  def findElementByClassName(className: String)(implicit contextElement: Option[Element]): Option[WebElement] = {
+    driver findOne By.className(className)
   }
 
-  def findElementByPartialLinkText(partialLinkText: String): Option[WebElement] = {
-    Optional(driver.findElement(By.partialLinkText(partialLinkText)))
+  def findElementsByClassName(className: String)(implicit contextElement: Option[Element]): Seq[WebElement] = {
+    driver findMany By.className(className)
   }
 
-  def findElementsByPartialLinkText(partialLinkText: String): Seq[WebElement] = {
-    driver.findElements(By.partialLinkText(partialLinkText)).asScala.toSeq
+  def findElementByLinkText(linkText: String)(implicit contextElement: Option[Element]): Option[WebElement] = {
+    driver findOne By.linkText(linkText)
   }
 
-  def findElementByName(name: String): Option[WebElement] = Optional(driver.findElement(By.name(name)))
-
-  def findElementsByName(name: String): Seq[WebElement] = driver.findElements(By.name(name)).asScala.toSeq
-
-  def findElementByCssSelector(cssSelector: String): Option[WebElement] = {
-    Optional(driver.findElement(By.cssSelector(cssSelector)))
+  def findElementsByLinkText(linkText: String)(implicit contextElement: Option[Element]): Seq[WebElement] = {
+    driver findMany By.linkText(linkText)
   }
 
-  def findElementsByCssSelector(cssSelector: String): Seq[WebElement] = {
-    driver.findElements(By.cssSelector(cssSelector)).asScala.toSeq
+  def findElementByPartialLinkText(partialLinkText: String)(implicit contextElement: Option[Element]) = {
+    driver findOne By.partialLinkText(partialLinkText)
   }
 
-  def findElementByTagName(tagName: String): Option[WebElement] = Optional(driver.findElement(By.tagName(tagName)))
+  def findElementsByPartialLinkText(partialLinkText: String)(implicit contextElement: Option[Element]) = {
+    driver findMany By.partialLinkText(partialLinkText)
+  }
 
-  def findElementsByTagName(tagName: String): Seq[WebElement] = driver.findElements(By.tagName(tagName)).asScala.toSeq
+  def findElementByName(name: String)(implicit contextElement: Option[Element]): Option[WebElement] = {
+    driver findOne By.name(name)
+  }
 
-  def findElementByXPath(xPath: String): Option[WebElement] = Optional(driver.findElement(By.tagName(xPath)))
+  def findElementsByName(name: String)(implicit contextElement: Option[Element]): Seq[WebElement] = {
+    driver findMany By.name(name)
+  }
 
-  def findElementsByXPath(xPath: String): Seq[WebElement] = driver.findElements(By.tagName(xPath)).asScala.toSeq
+  def findElementByCssSelector(cssSelector: String)(implicit contextElement: Option[Element]): Option[WebElement] = {
+    driver findOne By.cssSelector(cssSelector)
+  }
 
-  def Optional(f: => WebElement) = {
-    try {
-      Some(f)
-    } catch {
-      case  ex: NoSuchElementException => None
-    }
+  def findElementsByCssSelector(cssSelector: String)(implicit contextElement: Option[Element]): Seq[WebElement] = {
+    driver findMany By.cssSelector(cssSelector)
+  }
+
+  def findElementByTagName(tagName: String)(implicit contextElement: Option[Element]): Option[WebElement] = {
+    driver findOne By.tagName(tagName)
+  }
+
+  def findElementsByTagName(tagName: String)(implicit contextElement: Option[Element]): Seq[WebElement] = {
+    driver findMany By.tagName(tagName)
+  }
+
+  def findElementByXPath(xPath: String)(implicit contextElement: Option[Element]): Option[WebElement] = {
+    driver findOne By.tagName(xPath)
+  }
+
+  def findElementsByXPath(xPath: String)(implicit contextElement: Option[Element]): Seq[WebElement] = {
+    driver findMany By.tagName(xPath)
+  }
+
+  def findElementByText(partialText: String)(implicit contextElement: Option[Element]): Option[WebElement] = {
+    findElementByXPath(s"//*[text()='$partialText']")
+  }
+
+  def findElementsByText(partialText: String)(implicit contextElement: Option[Element]): Seq[WebElement] = {
+    findElementsByXPath(s"//*[text()='$partialText']")
   }
 }
 
 object ElementFinder {
+
   object FindElementBy extends Enumeration {
     type FindElementBy = Value
     val BY_X_PATH, BY_TAG_NAME, BY_CSS_SELECTOR, BY_NAME, BY_PARTIAL_LINK_TEXT, BY_LINK_TEXT,
-    BY_CLASS_NAME, BY_ID = Value
+    BY_CLASS_NAME, BY_ID, BY_TEXT = Value
   }
+
+  implicit class PageContext(webDriver: RemoteWebDriver) {
+
+    private def Optional(f: => WebElement): Option[WebElement] = {
+      try {
+        Some(f)
+      } catch {
+        case _: NoSuchElementException => None
+      }
+    }
+
+    def findOne(by: By)(implicit contextElement: Option[Element]): Option[WebElement] = {
+      Optional {
+        if (contextElement.isDefined) {
+          val context = contextElement.get.find(webDriver)
+          if (context.isDefined) {
+            context.get.findElement(by)
+          } else {
+            webDriver.findElement(by)
+          }
+        } else {
+          webDriver.findElement(by)
+        }
+      }
+    }
+
+    def findMany(by: By)(implicit contextElement: Option[Element]): Seq[WebElement] = {
+      val found = if (contextElement.isDefined) {
+        val context = contextElement.get.find(webDriver)
+        if (context.isDefined) {
+          context.get.findElements(by)
+        } else {
+          webDriver.findElements(by)
+        }
+      } else {
+        webDriver.findElements(by)
+      }
+
+      found.asScala.toSeq
+    }
+  }
+
 }

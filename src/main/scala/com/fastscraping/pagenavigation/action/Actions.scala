@@ -1,5 +1,6 @@
 package com.fastscraping.pagenavigation.action
 
+import com.fastscraping.model.Element
 import com.fastscraping.pagenavigation.{ActionPerformer, ActionsAndScrapeData}
 import com.fastscraping.utils.JsonParsingException
 import play.api.libs.json._
@@ -8,7 +9,7 @@ trait Actions extends ActionsAndScrapeData {
 
   def name: String
 
-  def perform(actionPerformer: ActionPerformer)
+  def perform(actionPerformer: ActionPerformer)(implicit contextElement: Option[Element])
 
   val times: Option[Int]
 

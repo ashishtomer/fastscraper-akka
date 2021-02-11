@@ -7,8 +7,8 @@ import akka.http.scaladsl.model.{ContentTypes, HttpEntity}
 import akka.http.scaladsl.server.Directives._
 import com.fastscraping.actor.message.{LinkManagerActorMessage, ScrapeJob}
 import com.fastscraping.model.ScrapeDataTypes._
-import com.fastscraping.model.{DataToExtract, UniqueTag, WebpageIdentifier}
-import com.fastscraping.pagenavigation.action.{KeySelectorActions, SelectorActions}
+import com.fastscraping.model.{DataToExtract, PageWork, UniqueTag, WebpageIdentifier}
+import com.fastscraping.pagenavigation.action.{FindElementActions, KeySelectorActions, SelectorActions}
 import com.fastscraping.pagenavigation.scrape.ScrapeData
 
 object HttpListeningActor {
@@ -26,19 +26,16 @@ object HttpListeningActor {
       get {
         println("Get received on the hello")
         val idf = WebpageIdentifier(
-          urlRegex = ".*youtube\\.com.*",
-          uniqueStringOnPage = Some("हिन्दी"),
-          UniqueTag("img#hplogo", None),
+          urlRegex = ".*https://www.binance.com/.*",
+          uniqueStringOnPage = Some("Buy & sell Crypto in minutes"),
+          UniqueTag("div.css-1gmkfzs", None),
           Seq(
-            ScrapeData("span.ytd-mini-guide-entry-renderer", DataToExtract("section", TEXT)),
-            SelectorActions("CLICK", Some("input")),
-            KeySelectorActions("SEND_KEYS", "Badshah Music", None),
-            KeySelectorActions("SEND_KEYS", "ARROW_DOWN", None, Some(5)),
-            KeySelectorActions("SEND_KEYS", "ENTER", None),
+            PageWork(SelectorActions("CLICK", Some("a#ba-tableMarkets"))),
+            PageWork(FindElementActions("CLICK", "BY_TEXT", "FIAT Markets"))
           )
         )
 
-        linkManager ! ScrapeJob("youtube.com", Seq(idf))
+        linkManager ! ScrapeJob("https://www.binance.com", Seq(idf), "binance")
         complete(HttpEntity(ContentTypes.`application/json`, "{\"message\":\"Scraping started\"}"))
       }
     }

@@ -62,8 +62,9 @@ class WebpageIdentifierSpec extends WordSpecLike {
         Some("Welcome"),
         UniqueTag("<h1>", Some("Welcome heading")),
         Seq(
-          scrape.ScrapeData("div.classb > p", DataToExtract("class b text", ScrapeDataTypes.TEXT)),
-          SelectorActions("div.classb > p > button", Some("click")))
+          PageWork(ScrapeData("div.classb > p", DataToExtract("class b text", ScrapeDataTypes.TEXT))),
+          PageWork(SelectorActions("div.classb > p > button", Some("click")))
+        )
       )
 
       val jsonString = Json.prettyPrint(Json.toJson(scrapingJob))

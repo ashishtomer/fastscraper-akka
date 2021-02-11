@@ -1,6 +1,6 @@
 package com.fastscraping.pagenavigation.action
 
-import com.fastscraping.model.ActionNames
+import com.fastscraping.model.{ActionNames, Element}
 import com.fastscraping.model.ActionNames.{CLICK, CLICK_AND_HOLD, CONTEXT_CLICK, DOUBLE_CLICK, MOUSE_OVER_ELEMENT, MOVE_TO_ELEMENT, RELEASE, RIGHT_CLICK}
 import com.fastscraping.pagenavigation.ActionPerformer
 import play.api.libs.json.{Format, Json}
@@ -12,7 +12,7 @@ case class SelectorActions(action: String,
 
   override val name = s"Action_${action}_On_$selector"
 
-  override def perform(actionPerformer: ActionPerformer): Unit = performMultiple {
+  override def perform(actionPerformer: ActionPerformer)(implicit contextElement: Option[Element]): Unit = performMultiple {
     TimeActions(pauseBeforeActionMillis.getOrElse(100L)).perform(actionPerformer)
     withKeyDownChecked(actionPerformer) {
       ActionNames.withName(action) match {

@@ -1,6 +1,6 @@
 package com.fastscraping.pagenavigation.action
 
-import com.fastscraping.model.ActionNames
+import com.fastscraping.model.{ActionNames, Element}
 import com.fastscraping.model.ActionNames._
 import com.fastscraping.pagenavigation.ActionPerformer
 import org.openqa.selenium.Keys
@@ -15,7 +15,7 @@ case class KeySelectorActions(action: String,
 
   override val name = s"Action_${action}_WithKey_$key"
 
-  override def perform(actionPerformer: ActionPerformer): Unit = {
+  override def perform(actionPerformer: ActionPerformer)(implicit contextElement: Option[Element]): Unit = {
     TimeActions(pauseBeforeActionMillis.getOrElse(100L)).perform(actionPerformer)
     ActionNames.withName(action) match {
       case KEY_DOWN =>

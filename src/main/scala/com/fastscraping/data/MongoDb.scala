@@ -1,7 +1,7 @@
 package com.fastscraping.data
 
 import com.mongodb.MongoClientSettings
-import org.mongodb.scala.model.FindOneAndUpdateOptions
+import org.mongodb.scala.model.{Filters, FindOneAndUpdateOptions, ReplaceOptions}
 import org.mongodb.scala.{Document, MongoClient, MongoCollection, Observable, Observer, ServerAddress, SingleObservable}
 
 import scala.jdk.CollectionConverters._
@@ -26,16 +26,16 @@ class MongoDb(address: String, port: Int, clientDb: String = "fastscraper") exte
     })
   }
 
-  private val doUpsert = FindOneAndUpdateOptions().upsert(true)
-  private val id = "_id"
+  private val doReplaceUpsert = ReplaceOptions().upsert(true)
+  private val id = "doc_id"
 
   override def saveText(index: String, documentId: String, column: String, text: String) = {
     WithCollection(index){ collection =>
       ObserveDbTransaction(documentId) {
-        collection.findOneAndUpdate(
-          Document(id -> documentId), //Find with id -- which usually should be page url
-          Document(id -> documentId, column -> text), //Document to update
-          doUpsert //Do upsert
+        collection.replaceOne(
+          Filters.equal(id, documentId),
+          Document(id -> documentId, column -> text),
+          doReplaceUpsert
         )
       }
     }
@@ -61,6 +61,6 @@ object MongoDb {
     }
   }
 
-  def apply(address: String, port: Int, clientDb: String): MongoDb = new MongoDb(address, port, clientDb)
+  def apply(address: String, port: Int, clientDb: String = "fastscraper"): MongoDb = new MongoDb(address, port, clientDb)
 
 }
