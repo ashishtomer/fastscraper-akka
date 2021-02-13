@@ -2,12 +2,13 @@ package com.fastscraping.actor
 
 import java.util.concurrent.TimeUnit
 
-import akka.actor.typed.Behavior
+import akka.actor.typed.{Behavior, Terminated}
 import akka.actor.typed.scaladsl.{AbstractBehavior, ActorContext, Behaviors}
 import com.fastscraping.actor.message.{ScrapeWebpage, WorkerActorMessage}
 import com.fastscraping.model.WebpageIdentifier
 import com.fastscraping.pagenavigation.selenium.{PageReader, ScrapeJobExecutor}
 import org.openqa.selenium.firefox.FirefoxDriver
+import org.openqa.selenium.remote.RemoteWebDriver
 
 /**
  * This is an actor which will do actual work on a web page.
@@ -28,24 +29,24 @@ import org.openqa.selenium.firefox.FirefoxDriver
  * @param context
  */
 class WorkerActor(context: ActorContext[WorkerActorMessage]) extends AbstractBehavior[WorkerActorMessage](context) {
-  private val driver = new FirefoxDriver()
+  private val driver:RemoteWebDriver = new FirefoxDriver()
   driver.manage().timeouts().pageLoadTimeout(60, TimeUnit.SECONDS).implicitlyWait(5, TimeUnit.SECONDS)
+
   private val pageReader = PageReader(driver)
   private val scrapeJobExecutor = ScrapeJobExecutor(pageReader)
 
-  override def onMessage(msg: WorkerActorMessage): Behavior[WorkerActorMessage] = msg match {
+  override def onMessage(msg: WorkerActorMessage): Behavior[WorkerActorMessage] = startScraping(msg)
+
+  def startScraping(msg: WorkerActorMessage) = msg match {
     case scrapeWebpage@ScrapeWebpage(link, jobId, webpageIdentifiers) =>
       pageReader.get(link)
       scrapeJobExecutor.execute(webpageIdentifiers)
 
       Behaviors.same[WorkerActorMessage]
   }
-
-  def actOnIdentifier(identifier: WebpageIdentifier): Unit = {
-    identifier.urlRegex
-  }
 }
 
 object WorkerActor {
   def apply() = Behaviors.setup[WorkerActorMessage](context => new WorkerActor(context))
+
 }

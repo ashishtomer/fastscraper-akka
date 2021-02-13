@@ -7,9 +7,9 @@ import akka.http.scaladsl.model.{ContentTypes, HttpEntity}
 import akka.http.scaladsl.server.Directives._
 import com.fastscraping.actor.message.{LinkManagerActorMessage, ScrapeJob}
 import com.fastscraping.model.ScrapeDataTypes._
-import com.fastscraping.model.{DataToExtract, PageWork, UniqueTag, WebpageIdentifier}
+import com.fastscraping.model.{DataToExtract, Element, PageWork, UniqueTag, WebpageIdentifier}
 import com.fastscraping.pagenavigation.action.{FindElementActions, KeySelectorActions, SelectorActions}
-import com.fastscraping.pagenavigation.scrape.ScrapeData
+import com.fastscraping.pagenavigation.scrape.{ScrapeLinks, ScrapeWithSelector}
 
 object HttpListeningActor {
 
@@ -26,16 +26,17 @@ object HttpListeningActor {
       get {
         println("Get received on the hello")
         val idf = WebpageIdentifier(
-          urlRegex = ".*https://www.binance.com/.*",
-          uniqueStringOnPage = Some("Buy & sell Crypto in minutes"),
-          UniqueTag("div.css-1gmkfzs", None),
+          urlRegex = "https://en\\.wikipedia\\.org/.*",
+          uniqueStringOnPage = Some("Welcome to Wikipedia"),
+          UniqueTag("div#mw-content-text", None),
+
           Seq(
-            PageWork(SelectorActions("CLICK", Some("a#ba-tableMarkets"))),
-            PageWork(FindElementActions("CLICK", "BY_TEXT", "FIAT Markets"))
+            PageWork(FindElementActions("CLICK", "BY_LINK_TEXT", "All portals"), Some(Element("BY_ID", "mp-topbanner"))),
+            PageWork(ScrapeLinks("https://en\\.wikipedia\\.org/wiki/Portal:.*"))
           )
         )
 
-        linkManager ! ScrapeJob("https://www.binance.com", Seq(idf), "binance")
+        linkManager ! ScrapeJob("https://en.wikipedia.org/wiki/Main_Page", Seq(idf), "wikipedia")
         complete(HttpEntity(ContentTypes.`application/json`, "{\"message\":\"Scraping started\"}"))
       }
     }

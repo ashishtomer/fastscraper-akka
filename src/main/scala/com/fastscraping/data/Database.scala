@@ -1,5 +1,7 @@
 package com.fastscraping.data
 
+import org.mongodb.scala.Document
+
 trait Database {
   /**
    * @param index The index (or table or collection) in the database
@@ -8,4 +10,6 @@ trait Database {
    * @param documentId Find the document with `documentId` and save text under
    */
   def saveText(index: String, documentId: String, column: String, text: String)
+
+  def saveDocument(index: String, documentId: String, doc: Document)
 }

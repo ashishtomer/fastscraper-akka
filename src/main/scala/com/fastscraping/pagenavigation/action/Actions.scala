@@ -1,11 +1,14 @@
 package com.fastscraping.pagenavigation.action
 
 import com.fastscraping.model.Element
-import com.fastscraping.pagenavigation.{ActionPerformer, ActionsAndScrapeData}
-import com.fastscraping.utils.JsonParsingException
+import com.fastscraping.pagenavigation.{ActionPerformer, ActionsAndScrape}
+import com.fastscraping.utils.{JsonParsingException, JsonWriteException}
+import org.openqa.selenium.StaleElementReferenceException
 import play.api.libs.json._
 
-trait Actions extends ActionsAndScrapeData {
+import scala.util.{Failure, Success, Try}
+
+trait Actions extends ActionsAndScrape {
 
   def name: String
 
@@ -13,7 +16,17 @@ trait Actions extends ActionsAndScrapeData {
 
   val times: Option[Int]
 
-  def performMultiple(f: => Any): Unit = for (_ <- 0 to times.getOrElse(1)) (f)
+  def performMultiple(actionPerformer: ActionPerformer)(f: => Any)(implicit contextElement: Option[Element]): Unit = {
+    for (_ <- 0 to times.getOrElse(1)) {
+      Try(f) map {
+        case Success(unit) => unit
+        case Failure(_: StaleElementReferenceException) =>
+          println("The element is stale ... retrying action again")
+          TimeActions(pauseBeforeActionMillis.getOrElse(5000L)).perform(actionPerformer)
+          f
+      }
+    }
+  }
 
   val pauseBeforeActionMillis: Option[Long]
 
@@ -36,20 +49,24 @@ object Actions {
   implicit val reads: Reads[Actions] = (json: JsValue) => try {
     JsSuccess {
       val jsonFields = json.as[JsObject].keys
-      if (jsonFields.contains("action") && jsonFields.contains("key"))
+      if (jsonFields.contains("action") && jsonFields.contains("key")) {
         json.as[KeySelectorActions]
-      else if (jsonFields.contains("action") && jsonFields.contains("findElementBy") && jsonFields.contains("value"))
+      } else if (jsonFields.contains("action") && jsonFields.contains("findElementBy") && jsonFields.contains("value")) {
         json.as[FindElementActions]
-      else if (jsonFields.contains("action") && jsonFields.contains("xOffset") && jsonFields.contains("yOffset"))
+      } else if (jsonFields.contains("action") && jsonFields.contains("xOffset") && jsonFields.contains("yOffset")) {
         json.as[OffsetActions]
-      else if (jsonFields.contains("action") && jsonFields.contains("fromSelector") && jsonFields.contains("toSelector"))
+      } else if (jsonFields.contains("action") && jsonFields.contains("fromSelector") && jsonFields.contains("toSelector")) {
         json.as[DragAndDropActions]
-      else if (jsonFields.contains("action"))
+      }
+      else if (jsonFields.contains("action")) {
         json.as[SelectorActions]
-      else if (jsonFields.contains("pauseMillis"))
+      }
+      else if (jsonFields.contains("pauseMillis")) {
         json.as[TimeActions]
-      else
+      }
+      else {
         throw JsonParsingException("Action couldn't be parsed", Some(Json.prettyPrint(json)))
+      }
     }
   } catch {
     case ex: JsonParsingException if ex.getMessage.contains("Action couldn't be parsed") => JsError()
@@ -62,6 +79,7 @@ object Actions {
     case a: DragAndDropActions => Json.toJson(a)
     case a: TimeActions => Json.toJson(a)
     case a: FindElementActions => Json.toJson(a)
+    case o => throw JsonWriteException(s"$o is not an instance of ${Writes.getClass}")
   }
 
   implicit val fmt: Format[Actions] = Format(reads, writes)

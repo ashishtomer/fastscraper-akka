@@ -1,8 +1,8 @@
 package com.fastscraping.data
 
 import com.mongodb.MongoClientSettings
-import org.mongodb.scala.model.{Filters, FindOneAndUpdateOptions, ReplaceOptions}
-import org.mongodb.scala.{Document, MongoClient, MongoCollection, Observable, Observer, ServerAddress, SingleObservable}
+import org.mongodb.scala.model.{Filters, ReplaceOptions}
+import org.mongodb.scala.{Document, MongoClient, MongoCollection, Observable, Observer, ServerAddress}
 
 import scala.jdk.CollectionConverters._
 
@@ -30,7 +30,7 @@ class MongoDb(address: String, port: Int, clientDb: String = "fastscraper") exte
   private val id = "doc_id"
 
   override def saveText(index: String, documentId: String, column: String, text: String) = {
-    WithCollection(index){ collection =>
+    WithCollection(index) { collection =>
       ObserveDbTransaction(documentId) {
         collection.replaceOne(
           Filters.equal(id, documentId),
@@ -40,16 +40,29 @@ class MongoDb(address: String, port: Int, clientDb: String = "fastscraper") exte
       }
     }
   }
+
+  override def saveDocument(index: String, documentId: String, doc: Document): Unit = {
+    WithCollection(index) { collection =>
+      ObserveDbTransaction(documentId) {
+        collection.replaceOne(
+          Filters.equal(id, documentId),
+          doc,
+          doReplaceUpsert
+        )
+      }
+    }
+  }
+
 }
 
 object MongoDb {
   private var mongoClient: MongoClient = null
 
-  private def getSingleton(address: String, port: Int) = if(mongoClient != null) {
+  private def getSingleton(address: String, port: Int) = if (mongoClient != null) {
     mongoClient
   } else {
     synchronized {
-      if(mongoClient == null) {
+      if (mongoClient == null) {
         mongoClient = MongoClient(
           MongoClientSettings.builder()
             .applyToClusterSettings(builder => builder.hosts(List(new ServerAddress(address, port)).asJava))

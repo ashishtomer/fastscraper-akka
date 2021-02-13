@@ -1,18 +1,18 @@
 package com.fastscraping.pagenavigation
 
 import com.fastscraping.pagenavigation.action.Actions
-import com.fastscraping.pagenavigation.scrape.ScrapeData
+import com.fastscraping.pagenavigation.scrape.{ScrapeWithSelector, Scraping}
 import com.fastscraping.utils.{JsonParsingException, JsonWriteException}
 import play.api.libs.json._
 
-trait ActionsAndScrapeData
+trait ActionsAndScrape
 
-object ActionsAndScrapeData {
-  private val reads: Reads[ActionsAndScrapeData] = (json: JsValue) => {
+object ActionsAndScrape {
+  private val reads: Reads[ActionsAndScrape] = (json: JsValue) => {
     json.asOpt[Actions] match {
       case Some(actions) => JsSuccess(actions)
       case None =>
-        json.asOpt[ScrapeData] match {
+        json.asOpt[Scraping] match {
           case Some(scrapeData) => JsSuccess(scrapeData)
           case None =>
             throw JsonParsingException("Could not parse json to either of Actions and ScrapeData", Some(json.toString))
@@ -20,12 +20,12 @@ object ActionsAndScrapeData {
     }
   }
 
-  private val writes: Writes[ActionsAndScrapeData] = {
+  private val writes: Writes[ActionsAndScrape] = {
     case actions: Actions => Json.toJson(actions)
-    case scrapeData: ScrapeData => Json.toJson(scrapeData)
+    case scraping: Scraping => Json.toJson(scraping)
     case obj: Any =>
-      throw JsonWriteException(s"${obj.getClass} not instance of ${ActionsAndScrapeData.getClass}. Can't serialize.")
+      throw JsonWriteException(s"${obj.getClass} not instance of ${ActionsAndScrape.getClass}. Can't serialize.")
   }
 
-  implicit val fmt: Format[ActionsAndScrapeData] = Format(reads, writes)
+  implicit val fmt: Format[ActionsAndScrape] = Format(reads, writes)
 }

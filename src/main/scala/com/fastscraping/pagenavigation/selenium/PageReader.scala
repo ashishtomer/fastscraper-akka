@@ -1,8 +1,8 @@
 package com.fastscraping.pagenavigation.selenium
 
-import org.openqa.selenium.firefox.FirefoxDriver
+import org.openqa.selenium.remote.RemoteWebDriver
 
-class PageReader(val driver: FirefoxDriver) extends FsJavascriptExecutor with InputDeviceProvider
+class PageReader(val driver: RemoteWebDriver) extends FsJavascriptExecutor with InputDeviceProvider
   with CapabilitiesProvider with ElementFinder with PageInfoProvider with BrowserHandler with TimeoutManager
   with FrameWindowNavigator with CookieManager with BrowserNavigator with WindowHandler {
 
@@ -19,10 +19,8 @@ class PageReader(val driver: FirefoxDriver) extends FsJavascriptExecutor with In
    */
   def get(url: String) = driver.get(url)
 
-  def getDriver = driver
-
 }
 
 object PageReader {
-  def apply(driver: FirefoxDriver): PageReader = new PageReader(driver)
+  def apply(driver: RemoteWebDriver): PageReader = new PageReader(driver)
 }

@@ -1,8 +1,8 @@
 package com.fastscraping.model
 
 import com.fastscraping.pagenavigation.action.SelectorActions
-import com.fastscraping.pagenavigation.{ActionsAndScrapeData, scrape}
-import com.fastscraping.pagenavigation.scrape.ScrapeData
+import com.fastscraping.pagenavigation.{ActionsAndScrape, scrape}
+import com.fastscraping.pagenavigation.scrape.ScrapeWithSelector
 import org.scalatest.WordSpecLike
 import play.api.libs.json.Json
 
@@ -18,7 +18,7 @@ class WebpageIdentifierSpec extends WordSpecLike {
           |""".stripMargin
 
       val parsed = Json.parse(testJson.toString)
-      val actionsAndScrapeData = parsed.as[ActionsAndScrapeData]
+      val actionsAndScrapeData = parsed.as[ActionsAndScrape]
 
       assert(actionsAndScrapeData.isInstanceOf[SelectorActions])
     }
@@ -36,20 +36,20 @@ class WebpageIdentifierSpec extends WordSpecLike {
           |""".stripMargin
 
       val parsed = Json.parse(testJson.toString)
-      val actionsAndScrapeData = parsed.as[ActionsAndScrapeData]
+      val actionsAndScrapeData = parsed.as[ActionsAndScrape]
 
-      assert(actionsAndScrapeData.isInstanceOf[ScrapeData])
+      assert(actionsAndScrapeData.isInstanceOf[ScrapeWithSelector])
     }
 
     "write json from instance of Actions" in {
-      val actions = SelectorActions("div.classb > p", Some("click")).asInstanceOf[ActionsAndScrapeData]
+      val actions = SelectorActions("div.classb > p", Some("click")).asInstanceOf[ActionsAndScrape]
       val jsonText = Json.toJson(actions).toString()
 
       assert(jsonText.contains("action"))
     }
 
     "write json from instance of ScrapeData" in {
-      val actions = scrape.ScrapeData("div.classb > p", DataToExtract("class b text", ScrapeDataTypes.TEXT)).asInstanceOf[ActionsAndScrapeData]
+      val actions = scrape.ScrapeWithSelector("div.classb > p", DataToExtract("class b text", ScrapeDataTypes.TEXT)).asInstanceOf[ActionsAndScrape]
       val jsonText = Json.toJson(actions).toString()
 
       assert(jsonText.contains("dataType"))
@@ -62,7 +62,7 @@ class WebpageIdentifierSpec extends WordSpecLike {
         Some("Welcome"),
         UniqueTag("<h1>", Some("Welcome heading")),
         Seq(
-          PageWork(ScrapeData("div.classb > p", DataToExtract("class b text", ScrapeDataTypes.TEXT))),
+          PageWork(ScrapeWithSelector("div.classb > p", DataToExtract("class b text", ScrapeDataTypes.TEXT))),
           PageWork(SelectorActions("div.classb > p > button", Some("click")))
         )
       )

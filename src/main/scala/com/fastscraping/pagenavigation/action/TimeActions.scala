@@ -9,8 +9,8 @@ case class TimeActions(pauseMillis: Long,
                        pauseBeforeActionMillis: Option[Long] = None) extends Actions {
   override val name = s"Pause_ForMillis_$pauseMillis"
 
-  override def perform(actionPerformer: ActionPerformer)(implicit contextElement: Option[Element]): Unit = performMultiple {
-    actionPerformer.pause(pauseMillis)
+  override def perform(actionPerformer: ActionPerformer)(implicit contextElement: Option[Element]): Unit = {
+    performMultiple(actionPerformer)(actionPerformer.pause(pauseMillis))
   }
 }
 

@@ -1,16 +1,16 @@
 package com.fastscraping.pagenavigation.selenium
 
-import com.fastscraping.data.{Database, MongoDb}
-import com.fastscraping.pagenavigation.action.{Actions, TimeActions, WithPause}
+import com.fastscraping.data.MongoDb
 import com.fastscraping.model.{Element, PageWork, WebpageIdentifier}
+import com.fastscraping.pagenavigation.action.{Actions, TimeActions, WithPause}
+import com.fastscraping.pagenavigation.scrape.{ScrapeWithSelector, Scraping}
 import com.fastscraping.pagenavigation.{ActionPerformer, Scraper}
-import com.fastscraping.pagenavigation.scrape.ScrapeData
 import com.fastscraping.utils.{IncorrectScrapeJob, MultipleMatchingIdentifiersException}
 
 class ScrapeJobExecutor(pageReader: PageReader) {
 
   val actionPerformer = ActionPerformer(pageReader)
-  val scraper = Scraper(pageReader, MongoDb("127.0.0.1", 27017))
+  val mongoDatabase = MongoDb("127.0.0.1", 27017)
   val timerAction = new TimeActions(100)
 
   def execute(webpageIdentifiers: Seq[WebpageIdentifier]) = {
@@ -20,7 +20,7 @@ class ScrapeJobExecutor(pageReader: PageReader) {
 
     filterPageModifier(webpageIdentifiers) match {
       case Some(webpageIdentifier) => performOperations(webpageIdentifier)
-      case None => ()
+      case None => println(s"No webpage identifier matched with ${pageReader.getCurrentUrl}")
     }
   }
 
@@ -28,8 +28,12 @@ class ScrapeJobExecutor(pageReader: PageReader) {
     webpageIdentifier.pageWorks.map { pageWork =>
       WithPause(actionPerformer) {
         pageWork match {
-          case PageWork(actions: Actions, contextElement) => actions.perform(actionPerformer)(contextElement)
-          case PageWork(scrapeData: ScrapeData, contextElement) => scrapeData.extractData(scraper)(contextElement)
+          case PageWork(actions: Actions, contextElement) =>
+            println(s"Performing action ${actions.name} with context $contextElement")
+            actions.perform(actionPerformer)(contextElement)
+          case PageWork(scraping: Scraping, contextElement) =>
+            println(s"Performing action ${scraping.name} with context $contextElement")
+            scraping.scrape(pageReader, mongoDatabase)(contextElement)
         }
       }
     }
