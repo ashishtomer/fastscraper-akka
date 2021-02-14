@@ -21,7 +21,7 @@ libraryDependencies ++= Seq(
   "org.apache.logging.log4j" % "log4j-core" % log4jVersion,
   "org.apache.logging.log4j" % "log4j-slf4j-impl" % log4jVersion, //route logs of slf4j to log4j
 
-  "org.mongodb.scala" %% "mongo-scala-driver" % "4.1.1",
+  "org.mongodb" % "mongodb-driver-sync" % "4.2.0",
 
   "org.scalatest" %% "scalatest" % "3.0.8" % Test
 )

@@ -102,36 +102,22 @@ object ElementFinder {
     }
 
     def findOne(by: By)(implicit contextElement: Option[Element]): Option[WebElement] = {
-      val theOne = Optional {
+      Optional {
         if (contextElement.isDefined) {
-          println(s"Context element is defined: $contextElement")
           val context = contextElement.get.find(webDriver)
           if (context.isDefined) {
-            println(s"Context is defined: $context")
-            val element = context.get.findElement(by)
-            element.getLocation
-            println(s"Got element with context: $element")
-            println(s"Element in context. Tag name: ${element.getTagName} Displayed: ${element.isDisplayed} Is selected: ${element.isSelected}")
-
-            element
+            context.get.findElement(by)
           } else {
             webDriver.findElement(by)
           }
         } else {
-          println(s"Context element is NOT defined: $contextElement")
           webDriver.findElement(by)
         }
       }
-
-      println(s"Found the element $theOne")
-      theOne
     }
 
     def findMany(by: By)(implicit contextElement: Option[Element]): Seq[WebElement] = {
-      println(s"Finding elements by $by")
-
       val found = if (contextElement.isDefined) {
-        println("Context element is defined")
         val context = contextElement.get.find(webDriver)
         if (context.isDefined) {
           context.get.findElements(by)
@@ -139,7 +125,6 @@ object ElementFinder {
           webDriver.findElements(by)
         }
       } else {
-        println("Context element is not defined")
         webDriver.findElements(by)
       }
 

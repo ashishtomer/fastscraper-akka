@@ -3,7 +3,7 @@ package com.fastscraping.actor
 
 import akka.actor.typed.scaladsl.{AbstractBehavior, ActorContext, Behaviors}
 import akka.actor.typed.{ActorRef, Behavior}
-import com.fastscraping.actor.message.{LinkManagerActorMessage, ScrapeJob, ScrapeWebpage, WorkerActorMessage}
+import com.fastscraping.actor.message.{LinkManagerActorMessage, ScrapeJob, StartScraping, WorkerActorMessage}
 
 import scala.collection.mutable
 
@@ -25,7 +25,7 @@ class LinkManagerActor(context: ActorContext[LinkManagerActorMessage]) extends A
     msg match {
       case job @ ScrapeJob(seedURL, webpageIdentifiers, jobId) =>
 
-        getWorkerActor(s"worker_actor_$jobId") ! ScrapeWebpage(seedURL, jobId, webpageIdentifiers)
+        getWorkerActor(s"worker_actor_$jobId") ! StartScraping(seedURL, jobId, webpageIdentifiers)
 
         Behaviors.same[LinkManagerActorMessage]
     }

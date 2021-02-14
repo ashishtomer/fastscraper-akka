@@ -3,13 +3,15 @@ package com.fastscraping.pagenavigation.scrape
 import com.fastscraping.data.Database
 import com.fastscraping.model.Element
 import com.fastscraping.pagenavigation.ActionsAndScrape
+import com.fastscraping.pagenavigation.scrape.ScrapeType.ScrapeType
 import com.fastscraping.pagenavigation.selenium.PageReader
 import com.fastscraping.utils.{JsonParsingException, JsonWriteException}
 import play.api.libs.json._
 
 trait Scraping extends ActionsAndScrape {
-  def name: String
-  def scrape(pageReader: PageReader, database: Database)(implicit contextElement: Option[Element]): Scraping
+  def scrapeType: ScrapeType
+  def indexName: String
+  def scrape(implicit pageReader: PageReader, database: Database, contextElement: Option[Element]): Scraping
 }
 
 object Scraping {

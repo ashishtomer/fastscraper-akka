@@ -6,10 +6,9 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity}
 import akka.http.scaladsl.server.Directives._
 import com.fastscraping.actor.message.{LinkManagerActorMessage, ScrapeJob}
-import com.fastscraping.model.ScrapeDataTypes._
-import com.fastscraping.model.{DataToExtract, Element, PageWork, UniqueTag, WebpageIdentifier}
-import com.fastscraping.pagenavigation.action.{FindElementActions, KeySelectorActions, SelectorActions}
-import com.fastscraping.pagenavigation.scrape.{ScrapeLinks, ScrapeWithSelector}
+import com.fastscraping.model.{Element, PageWork, UniqueTag, WebpageIdentifier}
+import com.fastscraping.pagenavigation.action.FindElementActions
+import com.fastscraping.pagenavigation.scrape.{ScrapeCrawlLinks, ScrapeLinks}
 
 object HttpListeningActor {
 
@@ -24,19 +23,29 @@ object HttpListeningActor {
   private def listenHttpCalls(linkManager: ActorRef[LinkManagerActorMessage])(implicit as: ActorSystem[Nothing]): Unit = {
     val route = path("scrape") {
       get {
-        println("Get received on the hello")
-        val idf = WebpageIdentifier(
-          urlRegex = "https://en\\.wikipedia\\.org/.*",
-          uniqueStringOnPage = Some("Welcome to Wikipedia"),
-          UniqueTag("div#mw-content-text", None),
+        val idfs = Seq(
+          WebpageIdentifier(
+            urlRegex = "https://en\\.wikipedia\\.org/wiki/Main_Page",
+            uniqueStringOnPage = Some("Welcome to Wikipedia"),
+            UniqueTag("div#mw-content-text", None),
 
-          Seq(
-            PageWork(FindElementActions("CLICK", "BY_LINK_TEXT", "All portals"), Some(Element("BY_ID", "mp-topbanner"))),
-            PageWork(ScrapeLinks("https://en\\.wikipedia\\.org/wiki/Portal:.*"))
+            Seq(
+              PageWork(ScrapeCrawlLinks("BY_TEXT", "All portals"), Some(Element("BY_ID", "mp-topbanner")))
+            )
+          ),
+          WebpageIdentifier(
+            urlRegex = "https://en\\.wikipedia\\.org/wiki/Wikipedia:Contents/Portals",
+            uniqueStringOnPage = Some("Wikipedia:Contents/Portals"),
+            UniqueTag("h1#firstHeading", None),
+
+            Seq(
+              PageWork(ScrapeLinks("https://en\\.wikipedia\\.org/wiki/Portal:.*", "scraped_links")),
+              PageWork(ScrapeCrawlLinks("BY_REGEX", "https://en\\.wikipedia\\.org/wiki/Portal:.*"))
+            )
           )
         )
 
-        linkManager ! ScrapeJob("https://en.wikipedia.org/wiki/Main_Page", Seq(idf), "wikipedia")
+        linkManager ! ScrapeJob("https://en.wikipedia.org/wiki/Main_Page", idfs, "wikipedia")
         complete(HttpEntity(ContentTypes.`application/json`, "{\"message\":\"Scraping started\"}"))
       }
     }

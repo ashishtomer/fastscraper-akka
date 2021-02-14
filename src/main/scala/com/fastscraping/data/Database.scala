@@ -1,6 +1,9 @@
 package com.fastscraping.data
 
+import com.fastscraping.data.Database.NextScrapeLink
 import org.mongodb.scala.Document
+
+import scala.concurrent.{ExecutionContext, Future}
 
 trait Database {
   /**
@@ -12,4 +15,12 @@ trait Database {
   def saveText(index: String, documentId: String, column: String, text: String)
 
   def saveDocument(index: String, documentId: String, doc: Document)
+
+  def nextScrapeLinks(limit: Int = 1)(implicit ec: ExecutionContext): Future[Seq[String]]
+
+  def markLinkAsScraped(link: String)
+}
+
+object Database {
+  case class NextScrapeLink(link: String)
 }

@@ -1,7 +1,7 @@
 package com.fastscraping.model
 
+import com.fastscraping.pagenavigation.ActionsAndScrape
 import com.fastscraping.pagenavigation.action.SelectorActions
-import com.fastscraping.pagenavigation.{ActionsAndScrape, scrape}
 import com.fastscraping.pagenavigation.scrape.ScrapeWithSelector
 import org.scalatest.WordSpecLike
 import play.api.libs.json.Json
@@ -49,7 +49,7 @@ class WebpageIdentifierSpec extends WordSpecLike {
     }
 
     "write json from instance of ScrapeData" in {
-      val actions = scrape.ScrapeWithSelector("div.classb > p", DataToExtract("class b text", ScrapeDataTypes.TEXT)).asInstanceOf[ActionsAndScrape]
+      val actions = ScrapeWithSelector("div.classb > p", DataToExtract("class b text", ScrapeDataTypes.TEXT), "text2").asInstanceOf[ActionsAndScrape]
       val jsonText = Json.toJson(actions).toString()
 
       assert(jsonText.contains("dataType"))
@@ -62,7 +62,7 @@ class WebpageIdentifierSpec extends WordSpecLike {
         Some("Welcome"),
         UniqueTag("<h1>", Some("Welcome heading")),
         Seq(
-          PageWork(ScrapeWithSelector("div.classb > p", DataToExtract("class b text", ScrapeDataTypes.TEXT))),
+          PageWork(ScrapeWithSelector("div.classb > p", DataToExtract("class b text", ScrapeDataTypes.TEXT), "text2")),
           PageWork(SelectorActions("div.classb > p > button", Some("click")))
         )
       )

@@ -1,39 +1,35 @@
 package com.fastscraping.pagenavigation.selenium
 
-import com.fastscraping.data.MongoDb
+import com.fastscraping.data.{Database, MongoDb}
 import com.fastscraping.model.{Element, PageWork, WebpageIdentifier}
+import com.fastscraping.pagenavigation.ActionPerformer
 import com.fastscraping.pagenavigation.action.{Actions, TimeActions, WithPause}
-import com.fastscraping.pagenavigation.scrape.{ScrapeWithSelector, Scraping}
-import com.fastscraping.pagenavigation.{ActionPerformer, Scraper}
+import com.fastscraping.pagenavigation.scrape.Scraping
 import com.fastscraping.utils.{IncorrectScrapeJob, MultipleMatchingIdentifiersException}
 
-class ScrapeJobExecutor(pageReader: PageReader) {
+class ScrapeJobExecutor(implicit pageReader: PageReader, db: Database) {
 
-  val actionPerformer = ActionPerformer(pageReader)
-  val mongoDatabase = MongoDb("127.0.0.1", 27017)
-  val timerAction = new TimeActions(100)
+  private val actionPerformer = ActionPerformer(pageReader)
 
-  def execute(webpageIdentifiers: Seq[WebpageIdentifier]) = {
-    if (webpageIdentifiers.isEmpty) {
-      throw IncorrectScrapeJob("No web page identifier found")
-    }
+  def execute(link: String, webpageIdentifiers: Seq[WebpageIdentifier]) = {
+
+    pageReader.get(link)
 
     filterPageModifier(webpageIdentifiers) match {
       case Some(webpageIdentifier) => performOperations(webpageIdentifier)
       case None => println(s"No webpage identifier matched with ${pageReader.getCurrentUrl}")
     }
+
+    db.markLinkAsScraped(link)
   }
 
   private def performOperations(webpageIdentifier: WebpageIdentifier) = {
     webpageIdentifier.pageWorks.map { pageWork =>
+      implicit val ce = pageWork.contextElement
       WithPause(actionPerformer) {
         pageWork match {
-          case PageWork(actions: Actions, contextElement) =>
-            println(s"Performing action ${actions.name} with context $contextElement")
-            actions.perform(actionPerformer)(contextElement)
-          case PageWork(scraping: Scraping, contextElement) =>
-            println(s"Performing action ${scraping.name} with context $contextElement")
-            scraping.scrape(pageReader, mongoDatabase)(contextElement)
+          case PageWork(actions: Actions, contextElement) => actions.perform(actionPerformer)
+          case PageWork(scraping: Scraping, contextElement) => scraping.scrape
         }
       }
     }
@@ -79,7 +75,7 @@ class ScrapeJobExecutor(pageReader: PageReader) {
 }
 
 object ScrapeJobExecutor {
-  def apply(pageReader: PageReader): ScrapeJobExecutor = new ScrapeJobExecutor(pageReader)
+  def apply()(implicit pageReader: PageReader, db: Database): ScrapeJobExecutor = new ScrapeJobExecutor()
 
   val UrlRegexMatchScore = 47
   val UniqueTagMatchScore = 13
