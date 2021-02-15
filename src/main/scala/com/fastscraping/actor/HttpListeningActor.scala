@@ -39,7 +39,7 @@ object HttpListeningActor {
             UniqueTag("h1#firstHeading", None),
 
             Seq(
-              PageWork(ScrapeLinks("https://en\\.wikipedia\\.org/wiki/Portal:.*", "scraped_links")),
+              PageWork(ScrapeLinks(".*wikipedia\\.org/wiki/.*", "scraped_links")),
               PageWork(ScrapeCrawlLinks("BY_REGEX", "https://en\\.wikipedia\\.org/wiki/Portal:.*"))
             )
           )

@@ -1,13 +1,12 @@
 package com.fastscraping.actor
 
-import java.net.URL
 import java.util.concurrent.TimeUnit
 
-import akka.actor.PoisonPill
-import akka.actor.typed.{ActorRef, Behavior, Terminated}
 import akka.actor.typed.scaladsl.{AbstractBehavior, ActorContext, Behaviors}
+import akka.actor.typed.{ActorRef, Behavior}
 import com.fastscraping.actor.message.{ScrapeNextPage, StartScraping, WorkerActorMessage}
-import com.fastscraping.data.{Database, MongoDb}
+import com.fastscraping.data.bson.CrawlLink
+import com.fastscraping.data.{Database, FsMongoDB, MongoProvider}
 import com.fastscraping.model.WebpageIdentifier
 import com.fastscraping.pagenavigation.selenium.{PageReader, ScrapeJobExecutor}
 import com.fastscraping.utils.IncorrectScrapeJob
@@ -15,8 +14,8 @@ import org.openqa.selenium.firefox.FirefoxDriver
 import org.openqa.selenium.remote.RemoteWebDriver
 
 import scala.collection.mutable
-import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future, duration}
-import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.ExecutionContext
+import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -44,7 +43,7 @@ class WorkerActor(context: ActorContext[WorkerActorMessage]) extends AbstractBeh
   val linkQueueLimit = 100
   val linkQueue: mutable.Queue[String] = mutable.Queue()
   private implicit lazy val pageReader: PageReader = PageReader(driver)
-  private lazy val driver:RemoteWebDriver = new FirefoxDriver()
+  private lazy val driver: RemoteWebDriver = new FirefoxDriver()
   driver.manage().timeouts().pageLoadTimeout(60, TimeUnit.SECONDS).implicitlyWait(5, TimeUnit.SECONDS)
 
   override def onMessage(msg: WorkerActorMessage): Behavior[WorkerActorMessage] = startScraping(msg)
@@ -55,8 +54,9 @@ class WorkerActor(context: ActorContext[WorkerActorMessage]) extends AbstractBeh
         throw IncorrectScrapeJob("No web page identifier found")
       }
 
-      val dbName = new URL(seedUrl).getHost.replaceAll("[\\./]", "_") + jobId
-      val db = MongoDb("127.0.0.1", 27017, dbName)
+      println("Getting the Database")
+
+      val db = FsMongoDB(MongoProvider.getDatabase())
       linkQueue.enqueue(seedUrl)
       context.self ! ScrapeNextPage(webpageIdentifiers, db)
       Behaviors.same[WorkerActorMessage]
@@ -71,18 +71,17 @@ class WorkerActor(context: ActorContext[WorkerActorMessage]) extends AbstractBeh
           self ! ScrapeNextPage(webpageIdentifiers, db)
 
         case Failure(_: NoSuchElementException) =>
-          db.nextScrapeLinks(linkQueueLimit)
-            .onComplete {
-              case Success(links) if links.nonEmpty =>
-                linkQueue.enqueueAll(links)
-                self ! ScrapeNextPage(webpageIdentifiers, db)
-              case Failure(ex) =>
-                println(s"Could not find links to scrape. Stopping scraping. ${ex.getMessage}")
-                throw ex
-              case _ =>
-                println(s"No more links to scrape. Stopping scraping.")
+          db.nextScrapeLinks(linkQueueLimit) match {
+            case links: mutable.Buffer[CrawlLink] if links.nonEmpty =>
+              linkQueue.enqueueAll(links.map(_._link_to_crawl))
+              self ! ScrapeNextPage(webpageIdentifiers, db)
 
-            }
+            case _ => println(s"No more links to scrape. Stopping scraping.")
+
+            case NonFatal(ex) =>
+              println(s"Could not find links to scrape. Stopping scraping. ${ex.getMessage}")
+              throw ex
+          }
       }
 
       Behaviors.same[WorkerActorMessage]
@@ -95,5 +94,4 @@ class WorkerActor(context: ActorContext[WorkerActorMessage]) extends AbstractBeh
 
 object WorkerActor {
   def apply() = Behaviors.setup[WorkerActorMessage](context => new WorkerActor(context))
-
 }

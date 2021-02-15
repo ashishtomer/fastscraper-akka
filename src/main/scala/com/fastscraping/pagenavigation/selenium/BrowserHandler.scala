@@ -1,8 +1,7 @@
 package com.fastscraping.pagenavigation.selenium
 
 import com.google.common.annotations.Beta
-import org.openqa.selenium.Cookie
-import org.openqa.selenium.WebDriver.{ImeHandler, Navigation, Options, TargetLocator, Timeouts, Window}
+import org.openqa.selenium.WebDriver._
 import org.openqa.selenium.logging.Logs
 import org.openqa.selenium.remote.RemoteWebDriver
 

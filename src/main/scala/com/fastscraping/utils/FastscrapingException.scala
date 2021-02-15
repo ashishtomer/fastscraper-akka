@@ -10,6 +10,7 @@ case class JsonWriteException(msg: String) extends FastscrapingException(msg)
 case class MultipleMatchingIdentifiersException(msg: String) extends FastscrapingException(msg)
 case class ElementNotFoundException(msg: String) extends FastscrapingException(msg)
 case class IncorrectScrapeJob(msg: String) extends FastscrapingException(msg)
+case class ConfigurationNotFoundException(msg: String) extends FastscrapingException(msg)
 
 object ExHelpers {
   def getElement(f: => Option[WebElement])(errorMsg: Option[String] = None): WebElement = {

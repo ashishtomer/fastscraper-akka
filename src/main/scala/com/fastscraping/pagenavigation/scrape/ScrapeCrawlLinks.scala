@@ -7,11 +7,7 @@ import com.fastscraping.pagenavigation.scrape.ScrapeType.{SCRAPE_CRAWL_LINKS, Sc
 import com.fastscraping.pagenavigation.selenium.PageReader
 import com.fastscraping.utils.Miscellaneous
 import com.fastscraping.utils.Miscellaneous.CRAWL_LINK_COLLECTION
-import org.mongodb.scala.bson.collection.immutable.Document
 import org.openqa.selenium.WebElement
-import play.api.libs.json.{JsFalse, JsObject, JsString}
-
-import scala.util.{Failure, Success, Try}
 
 case class ScrapeCrawlLinks(findLinksBy: String, value: String) extends Scraping {
   override def scrapeType: ScrapeType = SCRAPE_CRAWL_LINKS
@@ -22,17 +18,12 @@ case class ScrapeCrawlLinks(findLinksBy: String, value: String) extends Scraping
     getLinkElements()
       .foreach { linkElement =>
         val link = linkElement.getAttribute("href")
-        val json = JsObject(Seq(
-          Miscellaneous.CRAWL_LINK_INDEX -> JsString(link),
-          Miscellaneous.IS_CRAWLED -> JsFalse
-        ))
+        val document: Map[String, AnyRef] = Map(
+          Miscellaneous.CRAWL_LINK_INDEX -> link.asInstanceOf[AnyRef],
+          Miscellaneous.IS_CRAWLED -> false.asInstanceOf[AnyRef]
+        )
 
-        Try(database.saveDocument(indexName, pageReader.getCurrentUrl, Document(json.toString))) match {
-          case Success(x) => x
-          case Failure(ex) if (ex.getMessage.contains("duplicate key error collection")) =>
-            println(s"The [link=$link] already saved in mongo")
-          case Failure(ex) => throw ex
-        }
+        database.saveDocument(indexName, pageReader.getCurrentUrl, document)
       }
 
     this

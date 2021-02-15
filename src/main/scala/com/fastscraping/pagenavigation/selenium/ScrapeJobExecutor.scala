@@ -1,6 +1,6 @@
 package com.fastscraping.pagenavigation.selenium
 
-import com.fastscraping.data.{Database, MongoDb}
+import com.fastscraping.data.{Database, FsMongoDB}
 import com.fastscraping.model.{Element, PageWork, WebpageIdentifier}
 import com.fastscraping.pagenavigation.ActionPerformer
 import com.fastscraping.pagenavigation.action.{Actions, TimeActions, WithPause}
