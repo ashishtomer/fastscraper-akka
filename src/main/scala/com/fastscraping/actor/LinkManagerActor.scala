@@ -25,7 +25,7 @@ class LinkManagerActor(context: ActorContext[LinkManagerActorMessage]) extends A
     msg match {
       case job @ ScrapeJob(seedURL, webpageIdentifiers, jobId) =>
 
-        println("Getting a worker actor and starting scraping")
+        println(s"Getting a worker actor and starting scraping for job $jobId")
 
         getWorkerActor(s"worker_actor_$jobId") ! StartScraping(seedURL, jobId, webpageIdentifiers)
 

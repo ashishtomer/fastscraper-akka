@@ -30,10 +30,10 @@ object ScrapeJob {
   }
 
   private def createCorrectUrl(url: String) = {
-    val urlWithProtocol = if (!url.startsWith("http://") || !url.startsWith("https://")) {
-      "http://" + url
-    } else {
+    val urlWithProtocol = if (url.startsWith("http://") || url.startsWith("https://")) {
       url
+    } else {
+      "http://" + url
     }
 
     new URL(urlWithProtocol).toString

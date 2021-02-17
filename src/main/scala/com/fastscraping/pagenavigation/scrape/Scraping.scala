@@ -2,16 +2,59 @@ package com.fastscraping.pagenavigation.scrape
 
 import com.fastscraping.data.Database
 import com.fastscraping.model.Element
-import com.fastscraping.pagenavigation.ActionsAndScrape
 import com.fastscraping.pagenavigation.scrape.ScrapeType.ScrapeType
 import com.fastscraping.pagenavigation.selenium.PageReader
-import com.fastscraping.utils.{JsonParsingException, JsonWriteException}
+import com.fastscraping.pagenavigation.{ActionPerformer, ActionsAndScrape}
+import com.fastscraping.utils.{ElementNotFoundException, JsonParsingException, JsonWriteException}
 import play.api.libs.json._
+
+import scala.util.control.NonFatal
 
 trait Scraping extends ActionsAndScrape {
   def scrapeType: ScrapeType
-  def indexName: String
-  def scrape(implicit pageReader: PageReader, database: Database, contextElement: Option[Element]): Scraping
+
+  def indexName(jobId: Option[String] = None): String
+
+  def scrape(jobId: Option[String])(
+    implicit pageReader: PageReader,
+    database: Database,
+    contextElement: Option[Element]): Scraping
+
+  def actionPerformer(pageReader: PageReader) = ActionPerformer(pageReader)
+
+  def doScrollDown: Option[Boolean]
+
+  /**
+   * Number of retries to do. If the number is 0 no retry. If number is any number less than 0 then infinite scrolling
+   * @return
+   */
+  def scrollRetries: Option[Int]
+
+  @throws[ElementNotFoundException]
+  def WithScroll[T](f: => T)(implicit pageReader: PageReader): T = {
+    var retriesAttempted: Long = 0L
+    val retriesToDo = scrollRetries.getOrElse(5)
+
+    def startScroll = {
+      try (f) catch {
+        case x: T => x
+
+        case NonFatal(_: ElementNotFoundException)
+          if doScrollDown.isDefined &&
+            doScrollDown.get &&
+            (retriesToDo < 0 || retriesAttempted < retriesToDo) =>
+
+          scrollDown(pageReader)
+          actionPerformer(pageReader).pause(1000)
+          retriesAttempted += 1
+          WithScroll(f)
+
+        case NonFatal(ex: Throwable) => throw ex
+      }
+    }
+
+    startScroll
+  }
 }
 
 object Scraping {

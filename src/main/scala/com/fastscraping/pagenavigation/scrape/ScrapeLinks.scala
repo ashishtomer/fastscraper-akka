@@ -5,25 +5,37 @@ import java.util
 import com.fastscraping.data.Database
 import com.fastscraping.model.Element
 import com.fastscraping.pagenavigation.scrape.ScrapeLinks.LinkWithText
+import com.fastscraping.pagenavigation.scrape.ScrapeType.SCRAPE_LINKS
 import com.fastscraping.pagenavigation.selenium.PageReader
+import com.fastscraping.utils.Miscellaneous
+import play.api.libs.json.{Format, Json}
 
 import scala.jdk.CollectionConverters._
-import play.api.libs.json.{Format, JsObject, Json}
-import ScrapeType.SCRAPE_LINKS
 
-case class ScrapeLinks(linkMatch: Option[String] = Some(".+"), indexName: String) extends Scraping {
+case class ScrapeLinks(linkMatch: Option[String] = Some(".+"),
+                       index: String,
+                       doScrollDown: Option[Boolean] = None,
+                       scrollRetries: Option[Int] = None) extends Scraping {
+
   require(linkMatch.isDefined)
 
   val scrapeType = SCRAPE_LINKS
 
-  override def scrape(implicit pageReader: PageReader, database: Database, contextElement: Option[Element]): Scraping = {
+  override def indexName(jobId: Option[String]) = Miscellaneous.CollectionByJobId(jobId, index)
+
+  override def scrape(jobId: Option[String])(
+    implicit pageReader: PageReader,
+    database: Database,
+    contextElement: Option[Element]): Scraping = WithScroll {
+
+    println(s"[page=${pageReader.getCurrentUrl}] Will scrape links with ${linkMatch} match and save in ${indexName(jobId)}")
     val matchedLinks = pageReader.findElementsByCssSelector("a")
       .filter(ele => Option(ele.getAttribute("href")).exists(_.matches(linkMatch.get)))
       .map(linkElement => LinkWithText(linkElement.getAttribute("href"), linkElement.getText))
 
     val linksJson = Map("links_to_scrape" -> matchedLinks.map(_.asJavaMap))
 
-    database.saveDocument(indexName, pageReader.getCurrentUrl, linksJson)
+    database.saveDocument(indexName(jobId), pageReader.getCurrentUrl, linksJson)
     this
   }
 }
@@ -35,6 +47,7 @@ object ScrapeLinks {
 
   case class LinkWithText(link: String, text: String) {
     def asMap: Map[String, AnyRef] = Map("link" -> link, "text" -> text)
+
     def asJavaMap: util.Map[String, AnyRef] = asMap.asJava
   }
 

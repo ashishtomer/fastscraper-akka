@@ -44,9 +44,9 @@ class FsMongoDB(db: MongoDatabase) extends Database {
     }
   }
 
-  override def nextScrapeLinks(limit: Int = 1)(implicit ec: ExecutionContext) = {
+  override def nextScrapeLinks(jobId: Option[String], limit: Int = 1)(implicit ec: ExecutionContext) = {
     val javaArray = new util.ArrayList[CrawlLink](limit)
-    WithCollection(CRAWL_LINK_COLLECTION) { mongoCollection =>
+    WithCollection(CrawlLinkCollection(jobId)) { mongoCollection =>
       mongoCollection.find(Filters.eq(IS_CRAWLED, false), classOf[CrawlLink])
         .limit(limit)
         .into(javaArray)
@@ -54,8 +54,8 @@ class FsMongoDB(db: MongoDatabase) extends Database {
     }
   }
 
-  override def markLinkAsScraped(link: String): Unit = {
-    WithCollection(CRAWL_LINK_COLLECTION) { mongoCollection =>
+  override def markLinkAsScraped(jobId: Option[String], link: String): Unit = {
+    WithCollection(CrawlLinkCollection(jobId)) { mongoCollection =>
       IgnoreDuplication {
         mongoCollection.replaceOne(
           Filters.eq(CRAWL_LINK_INDEX, link),

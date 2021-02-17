@@ -2,10 +2,9 @@ package com.fastscraping.data
 
 import java.util.concurrent.TimeUnit
 
-import com.fastscraping.utils.Miscellaneous.{CRAWL_LINK_COLLECTION, CRAWL_LINK_INDEX}
+import com.fastscraping.utils.Miscellaneous.{CRAWL_LINK_INDEX, CrawlLinkCollection}
 import com.mongodb.client.model.IndexOptions
 import com.mongodb.client.{MongoClient, MongoClients, MongoDatabase}
-import com.mongodb.connection.netty.NettyStreamFactoryFactory
 import com.mongodb.connection.{ClusterSettings, ConnectionPoolSettings}
 import com.mongodb.{MongoClientSettings, MongoCredential, ServerAddress}
 import org.bson.Document
@@ -16,10 +15,12 @@ object MongoProvider {
   private var client: MongoClient = _
   private var fsScrapedDataDb: MongoDatabase = _
 
-  private def getClientAndDb(): (MongoClient, MongoDatabase) = synchronized {
+  private def getClientAndDb(jobId: Option[String]): MongoDatabase = synchronized {
 
     if (client != null) {
-      return client -> fsScrapedDataDb
+      val existingCollections = new java.util.ArrayList[String]()
+      fsScrapedDataDb.listCollectionNames().into(existingCollections)
+      if (existingCollections.contains(s"${CrawlLinkCollection(jobId)}")) return fsScrapedDataDb
     }
 
     import com.fastscraping.utils.MongoConfig._
@@ -42,8 +43,8 @@ object MongoProvider {
     val settings = MongoClientSettings.builder()
       .applyToClusterSettings(builder => builder.applySettings(clusterSettings))
       .applyToConnectionPoolSettings(builder => builder.applySettings(poolSettings))
-//      .streamFactoryFactory(NettyStreamFactoryFactory.builder().build())
-//      .credential(credential)
+      //      .streamFactoryFactory(NettyStreamFactoryFactory.builder().build())
+      //      .credential(credential)
       .codecRegistry(MongoCodecRegistries.getCodecRegistries)
       .build()
 
@@ -52,24 +53,15 @@ object MongoProvider {
     fsScrapedDataDb = client.getDatabase(scrapedDataDb)
 
     fsScrapedDataDb
-      .getCollection(CRAWL_LINK_COLLECTION)
+      .getCollection(s"${CrawlLinkCollection(jobId)}")
       .createIndex(
         new Document(Map(CRAWL_LINK_INDEX -> 1).asInstanceOf[Map[String, AnyRef]].asJava),
         new IndexOptions().unique(true)
       )
 
-    client -> fsScrapedDataDb
+    fsScrapedDataDb
   }
 
-
-  def getMongoClient(): MongoClient = {
-    if (client != null) {
-      client
-    } else {
-      getClientAndDb()._1
-    }
-  }
-
-  def getDatabase(): MongoDatabase =  getClientAndDb()._2
+  def getDatabase(jobId: Option[String]): MongoDatabase = getClientAndDb(jobId)
 
 }

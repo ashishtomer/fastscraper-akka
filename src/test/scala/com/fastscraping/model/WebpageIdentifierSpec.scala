@@ -58,9 +58,8 @@ class WebpageIdentifierSpec extends WordSpecLike {
 
     "write json from ScrapingJob instance" in {
       val scrapingJob = WebpageIdentifier(
-        "http://welcome.com",
-        Some("Welcome"),
-        UniqueTag("<h1>", Some("Welcome heading")),
+        PageUniqueness("http://welcome.com", UniqueTag("<h1>", Some("Welcome heading")), UniqueString("Welcome")),
+
         Seq(
           PageWork(ScrapeWithSelector("div.classb > p", DataToExtract("class b text", ScrapeDataTypes.TEXT), "text2")),
           PageWork(SelectorActions("div.classb > p > button", Some("click")))

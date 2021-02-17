@@ -17,9 +17,9 @@ trait Database {
 
   def saveDocument(index: String, documentId: String, doc: Map[String, AnyRef])
 
-  def nextScrapeLinks(limit: Int = 1)(implicit ec: ExecutionContext): mutable.Buffer[CrawlLink]
+  def nextScrapeLinks(jobId: Option[String], limit: Int = 1)(implicit ec: ExecutionContext): mutable.Buffer[CrawlLink]
 
-  def markLinkAsScraped(link: String)
+  def markLinkAsScraped(jobId: Option[String], link: String)
 }
 
 object Database {

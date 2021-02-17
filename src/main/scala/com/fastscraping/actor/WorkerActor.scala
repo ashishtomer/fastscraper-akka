@@ -55,10 +55,11 @@ class WorkerActor(context: ActorContext[WorkerActorMessage]) extends AbstractBeh
       }
 
       println("Getting the Database")
+      println(s"The seed url is: $seedUrl")
 
-      val db = FsMongoDB(MongoProvider.getDatabase())
+      val db = FsMongoDB(MongoProvider.getDatabase(Some(jobId)))
       linkQueue.enqueue(seedUrl)
-      context.self ! ScrapeNextPage(webpageIdentifiers, db)
+      context.self ! ScrapeNextPage(webpageIdentifiers, Some(jobId), db)
       Behaviors.same[WorkerActorMessage]
 
     case readNext: ScrapeNextPage =>
@@ -67,14 +68,14 @@ class WorkerActor(context: ActorContext[WorkerActorMessage]) extends AbstractBeh
 
       Try(linkQueue.dequeue()) match {
         case Success(link) =>
-          ScrapeJobExecutor()(pageReader, db).execute(link, webpageIdentifiers)
-          self ! ScrapeNextPage(webpageIdentifiers, db)
+          ScrapeJobExecutor()(pageReader, db).execute(link, webpageIdentifiers, jobId)
+          self ! ScrapeNextPage(webpageIdentifiers, jobId, db)
 
         case Failure(_: NoSuchElementException) =>
-          db.nextScrapeLinks(linkQueueLimit) match {
+          db.nextScrapeLinks(jobId, linkQueueLimit) match {
             case links: mutable.Buffer[CrawlLink] if links.nonEmpty =>
               linkQueue.enqueueAll(links.map(_._link_to_crawl))
-              self ! ScrapeNextPage(webpageIdentifiers, db)
+              self ! ScrapeNextPage(webpageIdentifiers, jobId, db)
 
             case _ => println(s"No more links to scrape. Stopping scraping.")
 

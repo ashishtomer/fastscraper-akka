@@ -1,35 +1,37 @@
 package com.fastscraping.pagenavigation.selenium
 
-import com.fastscraping.data.{Database, FsMongoDB}
+import com.fastscraping.data.Database
 import com.fastscraping.model.{Element, PageWork, WebpageIdentifier}
 import com.fastscraping.pagenavigation.ActionPerformer
-import com.fastscraping.pagenavigation.action.{Actions, TimeActions, WithPause}
+import com.fastscraping.pagenavigation.action.{Actions, WithPause}
 import com.fastscraping.pagenavigation.scrape.Scraping
-import com.fastscraping.utils.{IncorrectScrapeJob, MultipleMatchingIdentifiersException}
+import com.fastscraping.utils.MultipleMatchingIdentifiersException
 
 class ScrapeJobExecutor(implicit pageReader: PageReader, db: Database) {
 
   private val actionPerformer = ActionPerformer(pageReader)
 
-  def execute(link: String, webpageIdentifiers: Seq[WebpageIdentifier]) = {
+  def execute(link: String, webpageIdentifiers: Seq[WebpageIdentifier], jobId: Option[String]) = {
+
+    println(s"Opening link: $link")
 
     pageReader.get(link)
 
     filterPageModifier(webpageIdentifiers) match {
-      case Some(webpageIdentifier) => performOperations(webpageIdentifier)
+      case Some(webpageIdentifier) => performOperations(jobId, webpageIdentifier)
       case None => println(s"No webpage identifier matched with ${pageReader.getCurrentUrl}")
     }
 
-    db.markLinkAsScraped(link)
+    db.markLinkAsScraped(jobId, link)
   }
 
-  private def performOperations(webpageIdentifier: WebpageIdentifier) = {
+  private def performOperations(jobId: Option[String], webpageIdentifier: WebpageIdentifier) = {
     webpageIdentifier.pageWorks.map { pageWork =>
       implicit val ce = pageWork.contextElement
       WithPause(actionPerformer) {
         pageWork match {
           case PageWork(actions: Actions, contextElement) => actions.perform(actionPerformer)
-          case PageWork(scraping: Scraping, contextElement) => scraping.scrape
+          case PageWork(scraping: Scraping, contextElement) => scraping.scrape(jobId)
         }
       }
     }
@@ -39,23 +41,21 @@ class ScrapeJobExecutor(implicit pageReader: PageReader, db: Database) {
     implicit val contextElement: Option[Element] = None
 
     val identifierWithScore = webpageIdentifiers map { pageIdentifier =>
+      import pageIdentifier.pageUniqueness._
 
-      val urlRegexMatched = pageReader.getCurrentUrl matches pageIdentifier.urlRegex
+      val urlRegexMatched = pageReader.getCurrentUrl matches urlRegex
 
-      val uniqueTagFound = pageReader.findElementByCssSelector(pageIdentifier.uniqueTag.selector) match {
-        case Some(element) => pageIdentifier.uniqueTag.text.map(_ == element.getText)
-        case None => Some(false)
-      }
+      val uniqueTagFound = pageReader.findElementsByTagName(uniqueTag.selector)(uniqueTag.contextElement)
+        .exists(element => element.getText.contains(uniqueString.string.trim))
 
-      val uniqueStringExists = pageIdentifier.uniqueStringOnPage.flatMap { uniqueString =>
-        pageReader.findElementByTagName("body").map { body =>
-          body.getText != null && body.getText.contains(uniqueString)
-        }
-      }
+      val uniqueStringExists = pageReader.findElementByTagName("body")(uniqueString.contextElement)
+        .map(context => context.getText != null && context.getText.contains(uniqueString.string))
 
       val regexScore = if (urlRegexMatched) 47 else 0
-      val tagScore = if (uniqueTagFound.isDefined && !uniqueTagFound.get) 0 else 13
+      val tagScore = if (uniqueTagFound) 13 else 0
       val stringScore = if (uniqueStringExists.isDefined && uniqueStringExists.get) 2 else 0
+
+      println(s"${pageReader.getCurrentUrl} => [regexScore=$regexScore][tagScore=$tagScore][stringScore=$stringScore] $pageIdentifier")
 
       val matchScore = regexScore + tagScore + stringScore
 
@@ -67,10 +67,11 @@ class ScrapeJobExecutor(implicit pageReader: PageReader, db: Database) {
     if (sorted.head._1 < ScrapeJobExecutor.UrlRegexMatchScore) {
       None
     } else if (sorted.size > 1 && sorted.head._1 == sorted.tail.head._1) {
-      throw MultipleMatchingIdentifiersException("Two page identifiers matched for same page. ScrapeJob incorrect.")
+      throw MultipleMatchingIdentifiersException(s"Two page identifiers matched for ${pageReader.getCurrentUrl}. $sorted")
     } else {
       Some(sorted.head._2)
     }
+
   }
 }
 

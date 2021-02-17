@@ -1,10 +1,15 @@
 package com.fastscraping.pagenavigation.selenium
 
+import org.openqa.selenium.JavascriptExecutor
 import org.openqa.selenium.remote.RemoteWebDriver
 
 class PageReader(val driver: RemoteWebDriver) extends FsJavascriptExecutor with InputDeviceProvider
   with CapabilitiesProvider with ElementFinder with PageInfoProvider with BrowserHandler with TimeoutManager
   with FrameWindowNavigator with CookieManager with BrowserNavigator with WindowHandler {
+
+  val jsExecutor = driver.asInstanceOf[JavascriptExecutor]
+
+  override def executeScript(script: String, args: Any*): AnyRef = jsExecutor.executeScript(script, args)
 
   /**
    * Load a new web page in the current browser window. This is done using an HTTP GET operation,

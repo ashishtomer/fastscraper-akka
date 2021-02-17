@@ -98,7 +98,9 @@ class ActionPerformer(val pageReader: PageReader) {
    * Clicks (without releasing) in the middle of the given element. This is equivalent to:
    * <i>Actions.moveToElement(onElement).clickAndHold()</i>
    */
-  def clickAndHold(selector: String)(implicit contextElement: Option[Element]): Boolean = WithElement(selector).map(element => actions.clickAndHold(element))
+  def clickAndHold(selector: String)(implicit contextElement: Option[Element]): Boolean = {
+    WithElement(selector).map(element => actions.clickAndHold(element))
+  }
 
   /**
    * Clicks (without releasing) at the current mouse location.
@@ -115,7 +117,9 @@ class ActionPerformer(val pageReader: PageReader) {
    * Invoking this action without invoking clickAndHold() first will result in
    * undefined behaviour.
    */
-  def release(selector: String)(implicit contextElement: Option[Element]): Boolean = WithElement(selector).map(element => actions.release(element))
+  def release(selector: String)(implicit contextElement: Option[Element]): Boolean = {
+    WithElement(selector).map(element => actions.release(element))
+  }
 
   /**
    * Releases the depressed left mouse button at the current mouse location.
@@ -140,7 +144,9 @@ class ActionPerformer(val pageReader: PageReader) {
    * Moves the mouse to the middle of the element. The element is scrolled into view and its
    * location is calculated using getBoundingClientRect.
    */
-  def moveToElement(selector: String)(implicit contextElement: Option[Element]): Boolean = WithElement(selector).map(element => actions.moveToElement(element))
+  def moveToElement(selector: String)(implicit contextElement: Option[Element]): Boolean = {
+    WithElement(selector).map(element => actions.moveToElement(element))
+  }
 
   /**
    * Moves the mouse to an offset from the top-left corner of the element.
@@ -163,9 +169,11 @@ class ActionPerformer(val pageReader: PageReader) {
    * A convenience method that performs click-and-hold at the location of the source element,
    * moves to the location of the target element, then releases the mouse.
    */
-  def dragAndDrop(fromSelector: String, toSelector: String)(implicit contextElement: Option[Element]): Boolean = WithElement(fromSelector).flatMap { from =>
-    WithElement(toSelector).map { to =>
-      actions.dragAndDrop(from, to)
+  def dragAndDrop(fromSelector: String, toSelector: String)(implicit contextElement: Option[Element]): Boolean = {
+    WithElement(fromSelector).flatMap { from =>
+      WithElement(toSelector).map { to =>
+        actions.dragAndDrop(from, to)
+      }
     }
   }
 
@@ -175,11 +183,15 @@ class ActionPerformer(val pageReader: PageReader) {
    * A convenience method that performs click-and-hold at the location of the source element,
    * moves by a given offset, then releases the mouse.
    */
-  def dragAndDropBy(selector: String, xOffset: Int, yOffset: Int)(implicit contextElement: Option[Element]): Boolean = WithElement(selector).map { element =>
-    actions.dragAndDropBy(element, xOffset, yOffset)
+  def dragAndDropBy(selector: String, xOffset: Int, yOffset: Int)(implicit contextElement: Option[Element]): Boolean = {
+    WithElement(selector).map { element =>
+      actions.dragAndDropBy(element, xOffset, yOffset)
+    }
   }
 
-  def dragAndDropBy(element: WebElement, xOffset: Int, yOffset: Int) = actions.dragAndDropBy(element, xOffset, yOffset)
+  def dragAndDropBy(element: WebElement, xOffset: Int, yOffset: Int) = {
+    actions.dragAndDropBy(element, xOffset, yOffset)
+  }
 
   def pause(millis: Long): Boolean = WithoutElement(actions.pause(millis))
 

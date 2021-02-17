@@ -6,15 +6,23 @@ import com.fastscraping.pagenavigation.scrape.ScrapeCrawlLinks.ScrapeLinksBy
 import com.fastscraping.pagenavigation.scrape.ScrapeType.{SCRAPE_CRAWL_LINKS, ScrapeType}
 import com.fastscraping.pagenavigation.selenium.PageReader
 import com.fastscraping.utils.Miscellaneous
-import com.fastscraping.utils.Miscellaneous.CRAWL_LINK_COLLECTION
+import com.fastscraping.utils.Miscellaneous.CrawlLinkCollection
 import org.openqa.selenium.WebElement
 
-case class ScrapeCrawlLinks(findLinksBy: String, value: String) extends Scraping {
+case class ScrapeCrawlLinks(findLinksBy: String,
+                            value: String,
+                            doScrollDown: Option[Boolean] = None,
+                            scrollRetries: Option[Int] = None) extends Scraping {
+
   override def scrapeType: ScrapeType = SCRAPE_CRAWL_LINKS
 
-  override def indexName: String = CRAWL_LINK_COLLECTION
+  override def indexName(jobId: Option[String]): String = CrawlLinkCollection(jobId)
 
-  override def scrape(implicit pageReader: PageReader, database: Database, contextElement: Option[Element]): Scraping = {
+  override def scrape(jobId: Option[String])(
+    implicit pageReader: PageReader,
+    database: Database,
+    contextElement: Option[Element]): Scraping = WithScroll {
+
     getLinkElements()
       .foreach { linkElement =>
         val link = linkElement.getAttribute("href")
@@ -23,7 +31,7 @@ case class ScrapeCrawlLinks(findLinksBy: String, value: String) extends Scraping
           Miscellaneous.IS_CRAWLED -> false.asInstanceOf[AnyRef]
         )
 
-        database.saveDocument(indexName, pageReader.getCurrentUrl, document)
+        database.saveDocument(indexName(jobId), pageReader.getCurrentUrl, document)
       }
 
     this

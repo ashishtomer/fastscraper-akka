@@ -2,10 +2,16 @@ package com.fastscraping.pagenavigation
 
 import com.fastscraping.pagenavigation.action.Actions
 import com.fastscraping.pagenavigation.scrape.{ScrapeWithSelector, Scraping}
+import com.fastscraping.pagenavigation.selenium.PageReader
 import com.fastscraping.utils.{JsonParsingException, JsonWriteException}
+import org.openqa.selenium.JavascriptExecutor
 import play.api.libs.json._
 
-trait ActionsAndScrape
+trait ActionsAndScrape {
+  def scrollDown(pageReader: PageReader): AnyRef = {
+    pageReader.executeScript("window.scrollTo(0, document.body.scrollHeight)");
+  }
+}
 
 object ActionsAndScrape {
   private val reads: Reads[ActionsAndScrape] = (json: JsValue) => {
