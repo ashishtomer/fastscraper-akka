@@ -6,7 +6,7 @@ import akka.actor.typed.scaladsl.{AbstractBehavior, ActorContext, Behaviors}
 import akka.actor.typed.{ActorRef, Behavior}
 import com.fastscraping.actor.message.{ScrapeNextPage, StartScraping, WorkerActorMessage}
 import com.fastscraping.data.bson.CrawlLink
-import com.fastscraping.data.{Database, FsMongoDB, MongoProvider}
+import com.fastscraping.data.{FsMongoDB, MongoProvider}
 import com.fastscraping.model.WebpageIdentifier
 import com.fastscraping.pagenavigation.selenium.{PageReader, ScrapeJobExecutor}
 import com.fastscraping.utils.IncorrectScrapeJob
@@ -14,6 +14,7 @@ import org.openqa.selenium.firefox.FirefoxDriver
 import org.openqa.selenium.remote.RemoteWebDriver
 
 import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 import scala.concurrent.ExecutionContext
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
@@ -54,12 +55,10 @@ class WorkerActor(context: ActorContext[WorkerActorMessage]) extends AbstractBeh
         throw IncorrectScrapeJob("No web page identifier found")
       }
 
-      println("Getting the Database")
-      println(s"The seed url is: $seedUrl")
-
       val db = FsMongoDB(MongoProvider.getDatabase(Some(jobId)))
       linkQueue.enqueue(seedUrl)
-      context.self ! ScrapeNextPage(webpageIdentifiers, Some(jobId), db)
+      val identifiers: ListBuffer[WebpageIdentifier] = ListBuffer(webpageIdentifiers:_*)
+      context.self ! ScrapeNextPage(identifiers, Some(jobId), db)
       Behaviors.same[WorkerActorMessage]
 
     case readNext: ScrapeNextPage =>
@@ -67,30 +66,29 @@ class WorkerActor(context: ActorContext[WorkerActorMessage]) extends AbstractBeh
       import readNext._
 
       Try(linkQueue.dequeue()) match {
+
         case Success(link) =>
           ScrapeJobExecutor()(pageReader, db).execute(link, webpageIdentifiers, jobId)
           self ! ScrapeNextPage(webpageIdentifiers, jobId, db)
 
         case Failure(_: NoSuchElementException) =>
           db.nextScrapeLinks(jobId, linkQueueLimit) match {
+
             case links: mutable.Buffer[CrawlLink] if links.nonEmpty =>
               linkQueue.enqueueAll(links.map(_._link_to_crawl))
               self ! ScrapeNextPage(webpageIdentifiers, jobId, db)
 
-            case _ => println(s"No more links to scrape. Stopping scraping.")
-
             case NonFatal(ex) =>
               println(s"Could not find links to scrape. Stopping scraping. ${ex.getMessage}")
               throw ex
+
+            case _ => println(s"No more links to scrape. Stopping scraping.")
           }
       }
 
       Behaviors.same[WorkerActorMessage]
   }
 
-  private def readNextPages(identifiers: Seq[WebpageIdentifier], db: Database)(implicit ec: ExecutionContext) = {
-
-  }
 }
 
 object WorkerActor {

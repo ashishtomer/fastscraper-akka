@@ -37,12 +37,12 @@ object HttpListeningActor {
           WebpageIdentifier(
             PageUniqueness(
               "https://www\\.amazon\\.in/.+",
-              UniqueTag("span.a-size-base.a-color-base", Some("Toys & Games"), Some(Element(FindElementBy.BY_ID.toString, "#departments"))),
-              UniqueString("Toys & Games", Some(Element(FindElementBy.BY_ID.toString, "#departments")))
+              UniqueTag("div#p_72-title", Some("Avg. Customer Review"), Some(Element(FindElementBy.BY_CSS_SELECTOR.toString, "div.a-section.a-spacing-double-large"))),
+              UniqueString("Sort by:", Some(Element(FindElementBy.BY_ID.toString, "#a-autoid-0-announce")))
             ),
             Seq(
-              PageWork(ScrapeCrawlLinks(FindElementBy.BY_CSS_SELECTOR.toString, "a.a-link-normal.a-text-normal")),
-              PageWork(ScrapeCrawlLinks(FindElementBy.BY_CSS_SELECTOR.toString, "li.a-normal a"), Some(Element(FindElementBy.BY_CSS_SELECTOR.toString, "div.a-text-center[role=\"navigation\"]")))
+              PageWork(ScrapeCrawlLinks(ScrapeLinksBy.BY_SELECTOR.toString, "a.a-link-normal.a-text-normal")),
+              PageWork(ScrapeCrawlLinks(ScrapeLinksBy.BY_SELECTOR.toString, "li.a-normal a"), Some(Element(FindElementBy.BY_CSS_SELECTOR.toString, "div.a-text-center[role=\"navigation\"]")))
             )
           ),
           WebpageIdentifier(

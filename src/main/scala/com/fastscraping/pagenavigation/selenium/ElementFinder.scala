@@ -125,6 +125,7 @@ object ElementFinder {
           webDriver.findElements(by)
         }
       } else {
+        println(s"Finding element by $by")
         webDriver.findElements(by)
       }
 
