@@ -68,8 +68,14 @@ class WorkerActor(context: ActorContext[WorkerActorMessage]) extends AbstractBeh
       Try(linkQueue.dequeue()) match {
 
         case Success(link) =>
-          ScrapeJobExecutor()(pageReader, db).execute(link, webpageIdentifiers, jobId)
-          self ! ScrapeNextPage(webpageIdentifiers, jobId, db)
+          val startTime = System.currentTimeMillis()
+          ScrapeJobExecutor()(pageReader, db)
+            .execute(link, webpageIdentifiers, jobId)
+            .map { _ =>
+              println(s"time taken in scraping link: ${System.currentTimeMillis() - startTime}")
+              self ! ScrapeNextPage(webpageIdentifiers, jobId, db)
+            }
+
 
         case Failure(_: NoSuchElementException) =>
           db.nextScrapeLinks(jobId, linkQueueLimit) match {

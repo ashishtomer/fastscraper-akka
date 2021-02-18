@@ -1,10 +1,9 @@
 package com.fastscraping.pagenavigation
 
 import com.fastscraping.pagenavigation.action.Actions
-import com.fastscraping.pagenavigation.scrape.{ScrapeWithSelector, Scraping}
+import com.fastscraping.pagenavigation.scrape.Scraping
 import com.fastscraping.pagenavigation.selenium.PageReader
 import com.fastscraping.utils.{JsonParsingException, JsonWriteException}
-import org.openqa.selenium.JavascriptExecutor
 import play.api.libs.json._
 
 trait ActionsAndScrape {
