@@ -3,16 +3,16 @@ package com.fastscraping.pagenavigation.selenium
 import com.fastscraping.data.Database
 import com.fastscraping.model.{Element, PageWork, WebpageIdentifier}
 import com.fastscraping.pagenavigation.ActionPerformer
-import com.fastscraping.pagenavigation.action.{Actions, WithPause}
+import com.fastscraping.pagenavigation.action.Actions
 import com.fastscraping.pagenavigation.scrape.Scraping
 import com.fastscraping.utils.Miscellaneous._
-import com.fastscraping.utils.MultipleMatchingIdentifiersException
+import com.fastscraping.utils.{FsLogging, MultipleMatchingIdentifiersException}
 import org.openqa.selenium.WebElement
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.{ExecutionContext, Future}
 
-class ScrapeJobExecutor(implicit pageReader: PageReader, db: Database) {
+class ScrapeJobExecutor(implicit pageReader: PageReader, db: Database) extends FsLogging {
 
   private val actionPerformer = ActionPerformer(pageReader)
 
@@ -21,19 +21,19 @@ class ScrapeJobExecutor(implicit pageReader: PageReader, db: Database) {
     pageReader.get(link)
 
     filterPageModifier(webpageIdentifiers) map {
-      case Some(webpageIdentifier) => PrintMetric("performing operations") {performOperations(jobId, webpageIdentifier)}
-      case None => println(s"No webpage identifier matched with ${pageReader.getCurrentUrl}")
+      case Some(webpageIdentifier) => PrintMetric("performing operations") {
+        performOperations(jobId, webpageIdentifier)
+      }
+      case None => logger.warn(s"No webpage identifier matched with ${pageReader.getCurrentUrl}")
     } map (_ => db.markLinkAsScraped(jobId, link))
   }
 
   private def performOperations(jobId: Option[String], webpageIdentifier: WebpageIdentifier): Seq[Any] = {
     webpageIdentifier.pageWorks.map { pageWork =>
       implicit val ce = pageWork.contextElement
-      WithPause(actionPerformer) {
-        pageWork match {
-          case PageWork(actions: Actions, _) => actions.perform(actionPerformer)
-          case PageWork(scraping: Scraping, _) => scraping.scrape(jobId)
-        }
+      pageWork match {
+        case PageWork(actions: Actions, _) => actions.perform(actionPerformer)
+        case PageWork(scraping: Scraping, _) => scraping.scrape(jobId)
       }
     }
   }
@@ -47,12 +47,15 @@ class ScrapeJobExecutor(implicit pageReader: PageReader, db: Database) {
       {
         import pageIdentifier.pageUniqueness._
 
-        def urlRegexMatched() = Future(PrintMetric("matching url") {pageReader.getCurrentUrl matches urlRegex})
+        def urlRegexMatched() = Future(PrintMetric("matching url") {
+          logger.info(s"filter(): match-regex=$urlRegex [pageIdentifier= $pageIdentifier]")
+          pageReader.getCurrentUrl matches urlRegex
+        })
 
         def anyUniqueTagNotFound() = Future {
           PrintMetric("finding unique tag") {
             uniqueTags.exists { uniqueTag =>
-              println(s"filter(): $uniqueTag [pageIdentifier= $pageIdentifier]")
+              logger.info(s"filter(): $uniqueTag [pageIdentifier= $pageIdentifier]")
 
               def tagTextExists(tagFound: WebElement): Boolean = {
                 val uniqueTagText = uniqueTag.text.getOrElse("")
@@ -69,7 +72,7 @@ class ScrapeJobExecutor(implicit pageReader: PageReader, db: Database) {
         def uniqueStringNotExists() = Future {
           PrintMetric("finding unique string") {
             uniqueStrings.exists { uniqueString =>
-              println(s"filter(): $uniqueString [pageIdentifier=$pageIdentifier]")
+              logger.info(s"filter(): $uniqueString [pageIdentifier=$pageIdentifier]")
               val stringContextOpt = pageReader.findElementByTagName("body")(uniqueString.contextElement)
               stringContextOpt.isEmpty ||
                 stringContextOpt.get.getText == null ||
@@ -81,35 +84,26 @@ class ScrapeJobExecutor(implicit pageReader: PageReader, db: Database) {
         Future.sequence(Seq(urlRegexMatched(), anyUniqueTagNotFound(), uniqueStringNotExists()))
           .map {
             case Seq(regexMatched, uniqueTagMatched, stringNotExists) =>
-              println(s"regexMatched=$regexMatched uniqueTagMatched=$uniqueTagMatched stringNotExists=$stringNotExists")
               val regexScore = if (regexMatched) 47 else 0
               val tagScore = if (uniqueTagMatched) 0 else 13
               val stringScore = if (stringNotExists) 0 else 2
 
-              println(s"regexScore=$regexScore tagScore=$tagScore stringScore=$stringScore identifier=$pageIdentifier")
+              logger.info(s"regexMatched=$regexMatched uniqueTagMatched=$uniqueTagMatched stringNotExists=$stringNotExists identifier=$pageIdentifier")
+              logger.info(s"regexScore=$regexScore tagScore=$tagScore stringScore=$stringScore identifier=$pageIdentifier")
 
               (regexScore + tagScore + stringScore, pageIdentifier)
           }
       }
     }
 
-    val firstElementsMatch = filter(webpageIdentifiers.head)
-
-    firstElementsMatch.map { firstMatch =>
-      if (firstMatch._1 == 62) {
-        println("First identifier's score is maximum. Won't filter against other identifiers.")
-        return Future.successful(Some(firstMatch._2))
-      }
-    }
-
-    RunFuturesInParallel(firstElementsMatch +: webpageIdentifiers.tail.map(x => filter(x)).toSeq)
+    RunFuturesInParallel(webpageIdentifiers.map(x => filter(x)).toSeq)
       .map { identifierWithScore =>
         val sorted = identifierWithScore.sortWith((first, seconds) => first._1 > seconds._1)
 
-        println(s"Before sorting: $webpageIdentifiers")
+        logger.debug(s"Before sorting: $webpageIdentifiers")
         webpageIdentifiers.clear()
         val sortedIdentifiers = webpageIdentifiers.appendAll(sorted.map(_._2))
-        println(s"After sorting: $sortedIdentifiers")
+        logger.debug(s"After sorting: $sortedIdentifiers")
 
         if (sorted.head._1 < ScrapeJobExecutor.UrlRegexMatchScore) {
           None

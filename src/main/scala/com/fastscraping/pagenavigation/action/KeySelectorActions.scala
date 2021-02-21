@@ -3,6 +3,7 @@ package com.fastscraping.pagenavigation.action
 import com.fastscraping.model.{ActionNames, Element}
 import com.fastscraping.model.ActionNames._
 import com.fastscraping.pagenavigation.ActionPerformer
+import com.fastscraping.utils.Miscellaneous
 import org.openqa.selenium.Keys
 import play.api.libs.json.{Format, Json}
 
@@ -15,8 +16,8 @@ case class KeySelectorActions(action: String,
 
   override val name = s"Action_${action}_WithKey_$key"
 
-  override def perform(actionPerformer: ActionPerformer)(implicit contextElement: Option[Element]): Unit = {
-    TimeActions(pauseBeforeActionMillis.getOrElse(100L)).perform(actionPerformer)
+  override def perform(actionPerformer: ActionPerformer)(implicit contextElement: Option[Element]): Unit =
+  Miscellaneous.PrintMetric(s"performing $action"){
     ActionNames.withName(action) match {
       case KEY_DOWN =>
         if (selector.isDefined) {

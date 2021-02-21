@@ -2,13 +2,13 @@ package com.fastscraping.pagenavigation.action
 
 import com.fastscraping.model.Element
 import com.fastscraping.pagenavigation.{ActionPerformer, ActionsAndScrape}
-import com.fastscraping.utils.{JsonParsingException, JsonWriteException}
+import com.fastscraping.utils.{FsLogging, JsonParsingException, JsonWriteException, Miscellaneous}
 import org.openqa.selenium.StaleElementReferenceException
 import play.api.libs.json._
 
 import scala.util.{Failure, Success, Try}
 
-trait Actions extends ActionsAndScrape {
+trait Actions extends ActionsAndScrape with FsLogging {
 
   def name: String
 
@@ -17,13 +17,15 @@ trait Actions extends ActionsAndScrape {
   val times: Option[Int]
 
   def performMultiple(actionPerformer: ActionPerformer)(f: => Any)(implicit contextElement: Option[Element]): Unit = {
-    for (_ <- 0 to times.getOrElse(1)) {
-      Try(f) map {
-        case Success(unit) => unit
-        case Failure(_: StaleElementReferenceException) =>
-          println("The element is stale ... retrying action again")
-          TimeActions(pauseBeforeActionMillis.getOrElse(5000L)).perform(actionPerformer)
-          f
+    Miscellaneous.PrintMetric("performing action"){
+      for (_ <- 0 to times.getOrElse(1)) {
+        Try(f) map {
+          case Success(unit) => unit
+          case Failure(_: StaleElementReferenceException) =>
+            logger.error("The element is stale ... retrying action again")
+            TimeActions(pauseBeforeActionMillis.getOrElse(5000L)).perform(actionPerformer)
+            f
+        }
       }
     }
   }

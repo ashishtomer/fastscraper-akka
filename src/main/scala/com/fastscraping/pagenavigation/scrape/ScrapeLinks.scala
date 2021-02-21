@@ -28,7 +28,6 @@ case class ScrapeLinks(linkMatch: Option[String] = Some(".+"),
     database: Database,
     contextElement: Option[Element]): Scraping = WithScroll {
 
-    println(s"[page=${pageReader.getCurrentUrl}] Will scrape links with ${linkMatch} match and save in ${indexName(jobId)}")
     val matchedLinks = pageReader.findElementsByCssSelector("a")
       .filter(ele => Option(ele.getAttribute("href")).exists(_.matches(linkMatch.get)))
       .map(linkElement => LinkWithText(linkElement.getAttribute("href"), linkElement.getText))

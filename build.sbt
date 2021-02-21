@@ -17,9 +17,9 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
   "com.typesafe.play" %% "play-json" % "2.8.1",
 
-  "org.apache.logging.log4j" % "log4j-api" % log4jVersion,
-  "org.apache.logging.log4j" % "log4j-core" % log4jVersion,
-  "org.apache.logging.log4j" % "log4j-slf4j-impl" % log4jVersion, //route logs of slf4j to log4j
+  "ch.qos.logback" % "logback-core" % "1.2.3",
+  "ch.qos.logback" % "logback-classic" % "1.2.3",
+  "org.slf4j" % "slf4j-api" % "1.7.30",
 
   "org.mongodb" % "mongodb-driver-sync" % "4.2.0",
 

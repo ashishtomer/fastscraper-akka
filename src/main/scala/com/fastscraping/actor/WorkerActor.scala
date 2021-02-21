@@ -9,7 +9,8 @@ import com.fastscraping.data.bson.CrawlLink
 import com.fastscraping.data.{FsMongoDB, MongoProvider}
 import com.fastscraping.model.WebpageIdentifier
 import com.fastscraping.pagenavigation.selenium.{PageReader, ScrapeJobExecutor}
-import com.fastscraping.utils.IncorrectScrapeJob
+import com.fastscraping.utils.{FsLogging, IncorrectScrapeJob}
+import org.openqa.selenium.chrome.{ChromeDriver, ChromeOptions}
 import org.openqa.selenium.firefox.FirefoxDriver
 import org.openqa.selenium.remote.RemoteWebDriver
 
@@ -37,15 +38,20 @@ import scala.util.{Failure, Success, Try}
  *
  * @param context
  */
-class WorkerActor(context: ActorContext[WorkerActorMessage]) extends AbstractBehavior[WorkerActorMessage](context) {
-  implicit val ec: ExecutionContext = context.executionContext
-  val self: ActorRef[WorkerActorMessage] = context.self
+class WorkerActor(context: ActorContext[WorkerActorMessage])
+  extends AbstractBehavior[WorkerActorMessage](context) with FsLogging {
 
-  val linkQueueLimit = 100
-  val linkQueue: mutable.Queue[String] = mutable.Queue()
+  private implicit val ec: ExecutionContext = context.executionContext
+  private val self: ActorRef[WorkerActorMessage] = context.self
+
+  private val linkQueueLimit = 100
+  private val linkQueue: mutable.Queue[String] = mutable.Queue()
   private implicit lazy val pageReader: PageReader = PageReader(driver)
-  private lazy val driver: RemoteWebDriver = new FirefoxDriver()
-  driver.manage().timeouts().pageLoadTimeout(60, TimeUnit.SECONDS).implicitlyWait(5, TimeUnit.SECONDS)
+  private lazy val options = new ChromeOptions()
+  private lazy val driver: RemoteWebDriver = new ChromeDriver(
+    options
+      .addArguments("start-maximized", "disable-infobars", "--disable-extensions",
+      "--disable-dev-shm-usage", "--no-sandbox"))
 
   override def onMessage(msg: WorkerActorMessage): Behavior[WorkerActorMessage] = startScraping(msg)
 
@@ -72,7 +78,7 @@ class WorkerActor(context: ActorContext[WorkerActorMessage]) extends AbstractBeh
           ScrapeJobExecutor()(pageReader, db)
             .execute(link, webpageIdentifiers, jobId)
             .map { _ =>
-              println(s"time taken in scraping link: ${System.currentTimeMillis() - startTime}")
+              logger.info(s"time taken in scraping link: ${System.currentTimeMillis() - startTime}")
               self ! ScrapeNextPage(webpageIdentifiers, jobId, db)
             }
 
@@ -85,10 +91,10 @@ class WorkerActor(context: ActorContext[WorkerActorMessage]) extends AbstractBeh
               self ! ScrapeNextPage(webpageIdentifiers, jobId, db)
 
             case NonFatal(ex) =>
-              println(s"Could not find links to scrape. Stopping scraping. ${ex.getMessage}")
+              logger.error(s"Could not find links to scrape. Stopping scraping. ${ex.getMessage}")
               throw ex
 
-            case _ => println(s"No more links to scrape. Stopping scraping.")
+            case _ => logger.warn(s"No more links to scrape. Stopping scraping.")
           }
       }
 

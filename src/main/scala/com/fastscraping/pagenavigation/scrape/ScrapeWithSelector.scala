@@ -23,7 +23,6 @@ case class ScrapeWithSelector(selector: String,
     contextElement: Option[Element]): Scraping = {
     synchronized {
       WithScroll {
-        println("Scraping with selector")
         pageReader.findElementByCssSelector(selector) match {
           case Some(webElement) =>
             dataToExtract.dataType match {
@@ -34,7 +33,7 @@ case class ScrapeWithSelector(selector: String,
 
           case None =>
             val err = s"'$selector' not found on ${pageReader.getCurrentUrl} to scrape in context=$contextElement"
-            println(err)
+            logger.error(err)
             throw ElementNotFoundException(err)
         }
 

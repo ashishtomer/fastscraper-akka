@@ -2,6 +2,7 @@ package com.fastscraping.pagenavigation.action
 
 import com.fastscraping.model.{ActionNames, Element}
 import com.fastscraping.pagenavigation.ActionPerformer
+import com.fastscraping.utils.Miscellaneous
 import play.api.libs.json.{Format, Json}
 
 case class DragAndDropActions(action: String,
@@ -11,11 +12,14 @@ case class DragAndDropActions(action: String,
                               pauseBeforeActionMillis: Option[Long] = None) extends Actions {
   override val name = s"DragAndDrop_From_${fromSelector}_To_$toSelector"
 
-  override def perform(actionPerformer: ActionPerformer)(implicit contextElement: Option[Element]): Unit = performMultiple(actionPerformer) {
-    TimeActions(pauseBeforeActionMillis.getOrElse(100L)).perform(actionPerformer)
-    withKeyDownChecked(actionPerformer) {
-      ActionNames.withName(action) match {
-        case ActionNames.DRAG_AND_DROP => actionPerformer.dragAndDrop(fromSelector, toSelector)
+  override def perform(actionPerformer: ActionPerformer)(implicit contextElement: Option[Element]): Unit = {
+    Miscellaneous.PrintMetric("performing drag&drop"){
+      performMultiple(actionPerformer) {
+        withKeyDownChecked(actionPerformer) {
+          ActionNames.withName(action) match {
+            case ActionNames.DRAG_AND_DROP => actionPerformer.dragAndDrop(fromSelector, toSelector)
+          }
+        }
       }
     }
   }

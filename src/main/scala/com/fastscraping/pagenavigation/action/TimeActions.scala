@@ -2,6 +2,7 @@ package com.fastscraping.pagenavigation.action
 
 import com.fastscraping.model.Element
 import com.fastscraping.pagenavigation.ActionPerformer
+import com.fastscraping.utils.Miscellaneous
 import play.api.libs.json.{Format, Json}
 
 case class TimeActions(pauseMillis: Long,
@@ -9,7 +10,8 @@ case class TimeActions(pauseMillis: Long,
                        pauseBeforeActionMillis: Option[Long] = None) extends Actions {
   override val name = s"Pause_ForMillis_$pauseMillis"
 
-  override def perform(actionPerformer: ActionPerformer)(implicit contextElement: Option[Element]): Unit = {
+  override def perform(actionPerformer: ActionPerformer)(implicit contextElement: Option[Element]): Unit =
+    Miscellaneous.PrintMetric("performing timeAction"){
     performMultiple(actionPerformer)(actionPerformer.pause(pauseMillis))
   }
 }

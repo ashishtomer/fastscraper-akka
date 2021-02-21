@@ -1,7 +1,12 @@
 package com.fastscraping
 
-import com.fastscraping.utils.StartApplication
+import com.fastscraping.utils.{FsLogging, StartApplication}
 
-object AppBootstraper {
-  def main(args: Array[String]): Unit = StartApplication()
+
+object AppBootstraper extends FsLogging {
+
+  def main(args: Array[String]): Unit = {
+    logger.info("Starting the application")
+    StartApplication()
+  }
 }

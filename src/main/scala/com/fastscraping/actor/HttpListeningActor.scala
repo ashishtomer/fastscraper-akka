@@ -10,8 +10,9 @@ import com.fastscraping.model._
 import com.fastscraping.pagenavigation.scrape.ScrapeCrawlLinks.ScrapeLinksBy
 import com.fastscraping.pagenavigation.scrape.{ScrapeCrawlLinks, ScrapeWithSelector}
 import com.fastscraping.pagenavigation.selenium.ElementFinder.FindElementBy
+import com.fastscraping.utils.FsLogging
 
-object HttpListeningActor {
+object HttpListeningActor extends FsLogging {
 
   def apply(): Behavior[Nothing] = Behaviors.setup[Nothing] { context =>
     val linkManagerActor: ActorRef[LinkManagerActorMessage] = context.spawn(LinkManagerActor(), "link-manager")
@@ -85,6 +86,7 @@ object HttpListeningActor {
     }
 
     val bindingFuture = Http().newServerAt("0.0.0.0", 8082).bind(route)
+    logger.info("Started listening on http://0.0.0.0:8082/")
 
   }
 

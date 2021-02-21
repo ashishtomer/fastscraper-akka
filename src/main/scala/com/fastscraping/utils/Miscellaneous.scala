@@ -3,7 +3,7 @@ package com.fastscraping.utils
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success}
 
-object Miscellaneous {
+object Miscellaneous extends FsLogging {
   val CRAWL_LINK_COLLECTION = "crawl_links"
   val CRAWL_LINK_INDEX = "_link_to_crawl"
   val IS_CRAWLED = "is_crawled"
@@ -35,7 +35,7 @@ object Miscellaneous {
   def PrintMetric[T](metricName: String)(f: => T): T = {
     val start = System.currentTimeMillis()
     val ret = f
-    println(s"Time taken in $metricName: ${System.currentTimeMillis() - start}")
+    logger.info(s"Time taken in $metricName: ${System.currentTimeMillis() - start}")
     ret
   }
 }

@@ -5,12 +5,12 @@ import com.fastscraping.model.Element
 import com.fastscraping.pagenavigation.scrape.ScrapeType.ScrapeType
 import com.fastscraping.pagenavigation.selenium.PageReader
 import com.fastscraping.pagenavigation.{ActionPerformer, ActionsAndScrape}
-import com.fastscraping.utils.{ElementNotFoundException, JsonParsingException, JsonWriteException}
+import com.fastscraping.utils.{ElementNotFoundException, FsLogging, JsonParsingException, JsonWriteException}
 import play.api.libs.json._
 
 import scala.util.control.NonFatal
 
-trait Scraping extends ActionsAndScrape {
+trait Scraping extends ActionsAndScrape with FsLogging {
   def scrapeType: ScrapeType
 
   def indexName(jobId: Option[String] = None): String
@@ -35,22 +35,17 @@ trait Scraping extends ActionsAndScrape {
     var retriesAttempted: Long = 0L
     val retriesToDo = scrollRetries.getOrElse(5)
 
-    println("Will do scrolling")
-
     def startScroll = {
       try (f) catch {
-        case x: T => x
-
         case NonFatal(ex: ElementNotFoundException)
           if doScrollDown.getOrElse(false) && (retriesToDo < 0 || retriesAttempted < retriesToDo) =>
 
           scrollDown(pageReader)
-          actionPerformer(pageReader).pause(1000)
           retriesAttempted += 1
           WithScroll(f)
 
         case NonFatal(ex: Throwable) =>
-          println("Scrolling is disabled. Not scrolling")
+          logger.error("Scrolling is disabled. Not scrolling")
           throw ex
       }
     }
