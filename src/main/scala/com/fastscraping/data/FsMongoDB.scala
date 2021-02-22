@@ -20,12 +20,16 @@ class FsMongoDB(db: MongoDatabase) extends Database {
   private val doReplaceUpsert = new ReplaceOptions().upsert(true)
   private val id = "doc_id"
 
-  override def saveText(collection: String, documentId: String, column: String, text: String): Unit = {
+  override def saveText(collection: String, documentId: String, index: String, text: String): Unit = {
     WithCollection(collection) { mongoCollection =>
       IgnoreDuplication {
         mongoCollection.replaceOne(
           Filters.eq(id, documentId),
-          new Document(Map(column -> text.asInstanceOf[AnyRef]).asJava),
+          new Document(
+            Map(
+              id -> documentId,
+              index -> text.asInstanceOf[AnyRef]
+            ).asJava),
           doReplaceUpsert
         )
       }
@@ -42,6 +46,12 @@ class FsMongoDB(db: MongoDatabase) extends Database {
         )
       }
     }
+  }
+
+  override def saveDocument(collection: String, documentId: String, doc: Document) = Try {
+    WithCollection(collection)(mongoCollection =>
+      IgnoreDuplication(mongoCollection.replaceOne(Filters.eq(id, documentId), doc, doReplaceUpsert))
+    )
   }
 
   override def nextScrapeLinks(jobId: Option[String], limit: Int = 1)(implicit ec: ExecutionContext) = {

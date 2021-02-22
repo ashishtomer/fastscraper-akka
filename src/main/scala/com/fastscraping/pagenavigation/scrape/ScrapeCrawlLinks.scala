@@ -17,28 +17,29 @@ case class ScrapeCrawlLinks(findLinksBy: String,
 
   override def scrapeType: ScrapeType = SCRAPE_CRAWL_LINKS
 
-  override def indexName(jobId: Option[String]): String = CrawlLinkCollection(jobId)
+  override def collectionName(jobId: Option[String]): String = CrawlLinkCollection(jobId)
 
   override def scrape(jobId: Option[String])(
     implicit pageReader: PageReader,
     database: Database,
-    contextElement: Option[Element]): Scraping = WithScroll {
+    contextElement: Option[Element]): Seq[PageData] = Miscellaneous.PrintMetric("scraping crawl linkshow ") {
+    WithScroll {
+      getLinkElements()
+        .flatMap { linkElement =>
+          val link = linkElement.getAttribute("href")
 
-    getLinkElements()
-      .foreach { linkElement =>
-        val link = linkElement.getAttribute("href")
+          if (!database.isLinkScraped(jobId, link)) {
+            val document: Map[String, AnyRef] = Map(
+              Miscellaneous._LINK_TO_CRAWL -> link.asInstanceOf[AnyRef],
+              Miscellaneous.IS_CRAWLED -> false.asInstanceOf[AnyRef]
+            )
 
-        if (!database.isLinkScraped(jobId, link)) {
-          val document: Map[String, AnyRef] = Map(
-            Miscellaneous._LINK_TO_CRAWL -> link.asInstanceOf[AnyRef],
-            Miscellaneous.IS_CRAWLED -> false.asInstanceOf[AnyRef]
-          )
-
-          database.saveDocument(indexName(jobId), pageReader.getCurrentUrl, document)
+            Some(PageData(collectionName(jobId), document))
+          } else {
+            None
+          }
         }
-      }
-
-    this
+    }
   }
 
   private def getLinkElements()(implicit pageReader: PageReader, contextElement: Option[Element]): Seq[WebElement] = {

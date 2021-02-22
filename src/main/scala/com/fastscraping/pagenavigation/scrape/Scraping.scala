@@ -13,12 +13,12 @@ import scala.util.control.NonFatal
 trait Scraping extends ActionsAndScrape with FsLogging {
   def scrapeType: ScrapeType
 
-  def indexName(jobId: Option[String] = None): String
+  def collectionName(jobId: Option[String] = None): String
 
   def scrape(jobId: Option[String])(
     implicit pageReader: PageReader,
     database: Database,
-    contextElement: Option[Element]): Scraping
+    contextElement: Option[Element]): Seq[PageData]
 
   def actionPerformer(pageReader: PageReader) = ActionPerformer(pageReader)
 
@@ -44,9 +44,7 @@ trait Scraping extends ActionsAndScrape with FsLogging {
           retriesAttempted += 1
           WithScroll(f)
 
-        case NonFatal(ex: Throwable) =>
-          logger.error("Scrolling is disabled. Not scrolling")
-          throw ex
+        case NonFatal(ex: Throwable) => throw ex
       }
     }
 

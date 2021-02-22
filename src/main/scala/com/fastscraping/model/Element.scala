@@ -1,15 +1,15 @@
 package com.fastscraping.model
 
 import com.fastscraping.pagenavigation.selenium.ElementFinder.FindElementBy
-import com.fastscraping.pagenavigation.selenium.ElementFinder.FindElementBy.{CLASS_NAME, CSS_SELECTOR, ID, LINK_TEXT, NAME, PARTIAL_LINK_TEXT, TAG_NAME, TEXT, X_PATH}
+import com.fastscraping.pagenavigation.selenium.ElementFinder.FindElementBy.{CLASS_NAME, CSS_SELECTOR, FindElementBy, ID, LINK_TEXT, NAME, PARTIAL_LINK_TEXT, TAG_NAME, TEXT, X_PATH}
 import org.openqa.selenium.remote.RemoteWebDriver
 import play.api.libs.json.Json
 
 import scala.util.{Failure, Success, Try}
 
-case class Element(findBy: String, value: String) {
+case class Element(findBy: FindElementBy, value: String) {
   def find(driver: RemoteWebDriver) = Try {
-    FindElementBy.withName(findBy) match {
+    findBy match {
       case X_PATH => driver.findElementByXPath(value)
       case TAG_NAME => driver.findElementByTagName(value)
       case CSS_SELECTOR => driver.findElementByCssSelector(value)

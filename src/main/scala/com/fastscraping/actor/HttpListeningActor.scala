@@ -42,19 +42,19 @@ object HttpListeningActor extends FsLogging {
                 UniqueTag(
                   "#p_72-title",
                   Some("Avg. Customer Review"),
-                  Some(Element(FindElementBy.ID.toString, "#reviewsRefinements"))
+                  Some(Element(FindElementBy.ID, "reviewsRefinements"))
                 ),
                 UniqueTag(
                   "ul.a-unordered-list.a-nostyle.a-vertical.a-spacing-medium",
                   Some("Toys & Games"),
-                  Some(Element(FindElementBy.ID.toString, "#departments"))
+                  Some(Element(FindElementBy.ID, "departments"))
                 )
               ),
-              Seq(UniqueString("Sort by:", Some(Element(FindElementBy.ID.toString, "#a-autoid-0-announce"))))
+              Seq(UniqueString("Sort by:", Some(Element(FindElementBy.ID, "a-autoid-0-announce"))))
             ),
             Seq(
               PageWork(ScrapeCrawlLinks(ScrapeLinksBy.BY_SELECTOR.toString, "a.a-link-normal.a-text-normal")),
-              PageWork(ScrapeCrawlLinks(ScrapeLinksBy.BY_SELECTOR.toString, "li.a-normal a"), Some(Element(FindElementBy.CSS_SELECTOR.toString, "div.a-text-center[role=\"navigation\"]")))
+              PageWork(ScrapeCrawlLinks(ScrapeLinksBy.BY_SELECTOR.toString, "li.a-normal a"), Some(Element(FindElementBy.CSS_SELECTOR, "div.a-text-center[role=\"navigation\"]")))
             )
           ),
           WebpageIdentifier(
@@ -64,20 +64,30 @@ object HttpListeningActor extends FsLogging {
                 UniqueTag(
                   "span.nav-a-content",
                   Some("Toys & Games"),
-                  Some(Element(FindElementBy.ID.toString, "#nav-progressive-subnav"))
+                  Some(Element(FindElementBy.ID, "nav-progressive-subnav"))
                 ),
                 UniqueTag(
                   "#wishListMainButton-announce",
                   Some("Add to Wish List"),
-                  Some(Element(FindElementBy.ID.toString, "#addToWishlist_feature_div"))
+                  Some(Element(FindElementBy.ID, "addToWishlist_feature_div"))
                 )
               ),
-              Seq(UniqueString("Toys & Games", Some(Element(FindElementBy.ID.toString, "#nav-progressive-subnav"))))
-              ),
+              Seq(UniqueString("Toys & Games", Some(Element(FindElementBy.ID, "nav-progressive-subnav"))))
+            ),
             Seq(
-              PageWork(ScrapeData(FindElementBy.ID, "#productTitle", DataToExtract("product_name", ScrapeDataTypes.TEXT), "toys")),
-              PageWork(ScrapeData(FindElementBy.ID, "#wayfinding-breadcrumbs_container", DataToExtract("hierarchy", ScrapeDataTypes.TEXT), "toys")),
-
+              PageWork(ScrapeData(FindElementBy.ID, "productTitle", DataToExtract("product_name", ScrapeDataTypes.TEXT), "toys")),
+              PageWork(ScrapeData(FindElementBy.ID, "wayfinding-breadcrumbs_container", DataToExtract("hierarchy", ScrapeDataTypes.TEXT), "toys")),
+              PageWork(ScrapeData(FindElementBy.ID, "acrCustomerReviewText", DataToExtract("number_of_ratings", ScrapeDataTypes.TEXT), "toys")),
+              PageWork(ScrapeData(FindElementBy.ID, "askATFLink", DataToExtract("number_of_questions", ScrapeDataTypes.TEXT), "toys")),
+              PageWork(ScrapeData(FindElementBy.ID, "priceblock_ourprice_row", DataToExtract("price", ScrapeDataTypes.TEXT), "toys")),
+              PageWork(ScrapeData(FindElementBy.ID, "regularprice_savings", DataToExtract("saving", ScrapeDataTypes.TEXT), "toys")),
+              PageWork(ScrapeData(FindElementBy.ID, "sellerProfileTriggerId", DataToExtract("sold_by", ScrapeDataTypes.TEXT), "toys")),
+              PageWork(ScrapeData(FindElementBy.ID, "SSOFpopoverLink", DataToExtract("fulfilled_by", ScrapeDataTypes.TEXT), "toys")),
+              PageWork(ScrapeData(FindElementBy.ID, "productDetails_techSpec_section_1", DataToExtract("product_information", ScrapeDataTypes.TEXT), "toys")),
+              PageWork(ScrapeData(FindElementBy.ID, "productDetails_detailBullets_sections1", DataToExtract("additional_information", ScrapeDataTypes.TEXT), "toys")),
+              PageWork(ScrapeData(FindElementBy.CSS_SELECTOR, "span.a-declarative", DataToExtract("sold_by_others", ScrapeDataTypes.TEXT), "toys"), Some(Element(FindElementBy.ID, "olp_feature_div"))),
+              PageWork(ScrapeData(FindElementBy.CSS_SELECTOR, "ul.a-unordered-list.a-vertical.a-spacing-mini", DataToExtract("product_description", ScrapeDataTypes.TEXT), "toys"), Some(Element(FindElementBy.ID, "feature-bullets"))),
+              PageWork(ScrapeData(FindElementBy.CSS_SELECTOR, "fieldset.forScreenreaders", DataToExtract("frequently_bought_together", ScrapeDataTypes.TEXT), "toys"), Some(Element(FindElementBy.ID, "sims-fbt-form")))
             )
           )
         )

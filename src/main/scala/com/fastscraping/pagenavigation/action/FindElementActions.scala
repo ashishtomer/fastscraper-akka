@@ -79,7 +79,7 @@ case class FindElementActions(action: String,
         if (multiple) {
           performer.pageReader.findElementsById(value)
         } else {
-          Seq(getElement(performer.pageReader.findElementById(value))(Some(s"$ID : $value not found")))
+          Seq(getElement(performer.pageReader.findElement(FindElementBy.ID, value))(Some(s"$ID : $value not found")))
         }
 
     }

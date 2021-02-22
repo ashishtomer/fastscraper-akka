@@ -1,7 +1,5 @@
 package com.fastscraping.pagenavigation.selenium
 
-import java.util.concurrent.TimeUnit
-
 import org.openqa.selenium.JavascriptExecutor
 import org.openqa.selenium.remote.RemoteWebDriver
 
@@ -28,9 +26,5 @@ class PageReader(val driver: RemoteWebDriver) extends InputDeviceProvider with C
 }
 
 object PageReader {
-  def apply(driver: RemoteWebDriver): PageReader = {
-    val pr = new PageReader(driver)
-    pr.timeouts.implicitlyWait(10L, TimeUnit.SECONDS).pageLoadTimeout(10L, TimeUnit.SECONDS)
-    pr
-  }
+  def apply(driver: RemoteWebDriver): PageReader = new PageReader(driver)
 }

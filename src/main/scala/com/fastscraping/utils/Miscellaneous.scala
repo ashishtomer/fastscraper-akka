@@ -12,9 +12,8 @@ object Miscellaneous extends FsLogging {
     s"${CRAWL_LINK_COLLECTION}_${jobIdOpt.getOrElse("").replaceAll("[^\\w\\d_]", "_")}"
   }
 
-  val CollectionByJobId: (Option[String], String) => String = (jobId, index) => {
-    s"${index.replaceAll("[^\\w\\d_]", "_")}_${jobId.getOrElse("").replace("-", "_")}"
-  }
+  val CollectionByJobId: (Option[String], String) => String = (jobId, index) =>
+    s"${index.replaceAll("[^\\w\\d_]", "_")}_${jobId.getOrElse("").replaceAll("[^\\w\\d_]", "_")}"
 
   def RunFuturesInParallel[A](futures: Seq[Future[A]])(implicit ec: ExecutionContext) = {
     val promAndFuts = futures.foldLeft(Seq[(Future[A], Promise[A])]())((promises, fut) => (fut, Promise[A]()) +: promises)

@@ -4,11 +4,13 @@ import com.fastscraping.data.Database
 import com.fastscraping.model.{Element, PageWork, WebpageIdentifier}
 import com.fastscraping.pagenavigation.ActionPerformer
 import com.fastscraping.pagenavigation.action.Actions
-import com.fastscraping.pagenavigation.scrape.Scraping
+import com.fastscraping.pagenavigation.scrape.{PageData, Scraping}
 import com.fastscraping.utils.Miscellaneous._
 import com.fastscraping.utils.{FsLogging, MultipleMatchingIdentifiersException}
+import org.bson.Document
 import org.openqa.selenium.WebElement
 
+import scala.collection.immutable
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -28,14 +30,26 @@ class ScrapeJobExecutor(implicit pageReader: PageReader, db: Database) extends F
     } map (_ => db.markLinkAsScraped(jobId, link))
   }
 
-  private def performOperations(jobId: Option[String], webpageIdentifier: WebpageIdentifier): Seq[Any] = {
-    webpageIdentifier.pageWorks.map { pageWork =>
-      implicit val ce = pageWork.contextElement
-      pageWork match {
-        case PageWork(actions: Actions, _) => actions.perform(actionPerformer)
-        case PageWork(scraping: Scraping, _) => scraping.scrape(jobId)
+  private def performOperations(jobId: Option[String], webpageIdentifier: WebpageIdentifier): immutable.Iterable[Unit] = {
+    val scrapedData = scala.collection.mutable.ListBuffer[PageData]()
+
+    webpageIdentifier.pageWorks
+      .map( pageWork => {
+        implicit val ce = pageWork.contextElement
+        pageWork match {
+          case PageWork(actions: Actions, _) => actions.perform(actionPerformer)
+          case PageWork(scraping: Scraping, _) => scrapedData.prependAll(scraping.scrape(jobId))
+        }
+      })
+      .filter(_.isInstanceOf[Seq[PageData]])
+
+    scrapedData.groupBy(_.collection)
+      .map {
+        case (collection: String, data: Seq[PageData]) =>
+          val mongoDoc = new Document()
+          data.foreach(_.doc.foreach(keyVal => mongoDoc.append(keyVal._1, keyVal._2)))
+          db.saveDocument(collection, pageReader.getCurrentUrl, mongoDoc)
       }
-    }
   }
 
   private def filterPageModifier[M](webpageIdentifiers: ListBuffer[WebpageIdentifier])(

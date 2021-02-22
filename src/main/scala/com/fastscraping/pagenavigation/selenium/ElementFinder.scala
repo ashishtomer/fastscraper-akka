@@ -3,7 +3,7 @@ package com.fastscraping.pagenavigation.selenium
 import com.fastscraping.model.Element
 import com.fastscraping.pagenavigation.ActionPerformer
 import com.fastscraping.pagenavigation.selenium.ElementFinder.PageContext
-import com.fastscraping.utils.EnumFormat
+import com.fastscraping.utils.{EnumFormat, FsLogging}
 import org.openqa.selenium.remote.RemoteWebDriver
 import org.openqa.selenium.{By, NoSuchElementException, WebElement}
 import play.api.libs.json.Format
@@ -12,7 +12,7 @@ import scala.annotation.tailrec
 import scala.jdk.CollectionConverters._
 import scala.util.control.NonFatal
 
-trait ElementFinder {
+trait ElementFinder extends FsLogging {
   pageReader: PageReader =>
 
   import com.fastscraping.pagenavigation.selenium.ElementFinder.FindElementBy._
@@ -123,6 +123,7 @@ trait ElementFinder {
     def tryExecution: T = try (f) catch {
       case NonFatal(ex) =>
         if (retryMillis < 2000) {
+          logger.info(s"Retrying execution in $retryMillis milliseconds after error", ex)
           ActionPerformer(pageReader).pause(retryMillis)
           retryMillis = retryMillis * 2
           tryExecution
@@ -135,7 +136,7 @@ trait ElementFinder {
   }
 }
 
-object ElementFinder {
+object ElementFinder extends FsLogging {
 
   object FindElementBy extends Enumeration {
     type FindElementBy = Value
@@ -149,7 +150,9 @@ object ElementFinder {
       try {
         Some(f)
       } catch {
-        case _: NoSuchElementException => None
+        case e: NoSuchElementException =>
+          logger.warn(s"The element not found on ${webDriver.getCurrentUrl}. " + e.getMessage)
+          None
       }
     }
 

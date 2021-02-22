@@ -1,6 +1,7 @@
 package com.fastscraping.data
 
 import com.fastscraping.data.bson.CrawlLink
+import org.bson.Document
 import play.api.libs.json.JsValue
 
 import scala.collection.mutable
@@ -8,14 +9,16 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait Database {
   /**
-   * @param index The index (or table or collection) in the database
-   * @param column Name of the column under which the text will be stored
+   * @param collection The collection or table in the database
+   * @param index Name of the column or index under which the text will be stored
    * @param text The text data itself
    * @param documentId Find the document with `documentId` and save text under
    */
-  def saveText(index: String, documentId: String, column: String, text: String)
+  def saveText(collection: String, documentId: String, index: String, text: String)
 
-  def saveDocument(index: String, documentId: String, doc: Map[String, AnyRef])
+  def saveDocument(collection: String, documentId: String, doc: Map[String, AnyRef])
+
+  def saveDocument(collection: String, documentId: String, doc: Document)
 
   def isLinkScraped(jobId: Option[String], link: String): Boolean
 

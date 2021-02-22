@@ -21,21 +21,22 @@ case class ScrapeLinks(linkMatch: Option[String] = Some(".+"),
 
   val scrapeType = SCRAPE_LINKS
 
-  override def indexName(jobId: Option[String]) = Miscellaneous.CollectionByJobId(jobId, index)
+  override def collectionName(jobId: Option[String]) = Miscellaneous.CollectionByJobId(jobId, index)
 
   override def scrape(jobId: Option[String])(
     implicit pageReader: PageReader,
     database: Database,
-    contextElement: Option[Element]): Scraping = WithScroll {
+    contextElement: Option[Element]) = Miscellaneous.PrintMetric("scraping links") {
+    WithScroll {
 
-    val matchedLinks = pageReader.findElementsByCssSelector("a")
-      .filter(ele => Option(ele.getAttribute("href")).exists(_.matches(linkMatch.get)))
-      .map(linkElement => LinkWithText(linkElement.getAttribute("href"), linkElement.getText))
+      val matchedLinks = pageReader.findElementsByCssSelector("a")
+        .filter(ele => Option(ele.getAttribute("href")).exists(_.matches(linkMatch.get)))
+        .map(linkElement => LinkWithText(linkElement.getAttribute("href"), linkElement.getText))
 
-    val linksJson = Map("links_to_scrape" -> matchedLinks.map(_.asJavaMap))
+      val linksJson = Map("links_to_scrape" -> matchedLinks.map(_.asJavaMap))
 
-    database.saveDocument(indexName(jobId), pageReader.getCurrentUrl, linksJson)
-    this
+      Seq(PageData(collectionName(jobId), linksJson))
+    }
   }
 }
 
