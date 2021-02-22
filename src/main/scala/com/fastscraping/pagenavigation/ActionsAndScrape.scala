@@ -8,7 +8,7 @@ import play.api.libs.json._
 
 trait ActionsAndScrape {
   def scrollDown(pageReader: PageReader): AnyRef = {
-    pageReader.executeScript("window.scrollTo(0, document.body.scrollHeight)");
+    pageReader.executeScript("window.scrollTo(0, document.body.scrollHeight)")
   }
 }
 

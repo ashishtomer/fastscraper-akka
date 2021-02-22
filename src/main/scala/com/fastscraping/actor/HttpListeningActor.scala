@@ -8,7 +8,7 @@ import akka.http.scaladsl.server.Directives._
 import com.fastscraping.actor.message.{LinkManagerActorMessage, ScrapeJob}
 import com.fastscraping.model._
 import com.fastscraping.pagenavigation.scrape.ScrapeCrawlLinks.ScrapeLinksBy
-import com.fastscraping.pagenavigation.scrape.{ScrapeCrawlLinks, ScrapeWithSelector}
+import com.fastscraping.pagenavigation.scrape.{ScrapeCrawlLinks, ScrapeData}
 import com.fastscraping.pagenavigation.selenium.ElementFinder.FindElementBy
 import com.fastscraping.utils.FsLogging
 
@@ -42,19 +42,19 @@ object HttpListeningActor extends FsLogging {
                 UniqueTag(
                   "#p_72-title",
                   Some("Avg. Customer Review"),
-                  Some(Element(FindElementBy.BY_ID.toString, "#reviewsRefinements"))
+                  Some(Element(FindElementBy.ID.toString, "#reviewsRefinements"))
                 ),
                 UniqueTag(
                   "ul.a-unordered-list.a-nostyle.a-vertical.a-spacing-medium",
                   Some("Toys & Games"),
-                  Some(Element(FindElementBy.BY_ID.toString, "#departments"))
+                  Some(Element(FindElementBy.ID.toString, "#departments"))
                 )
               ),
-              Seq(UniqueString("Sort by:", Some(Element(FindElementBy.BY_ID.toString, "#a-autoid-0-announce"))))
+              Seq(UniqueString("Sort by:", Some(Element(FindElementBy.ID.toString, "#a-autoid-0-announce"))))
             ),
             Seq(
               PageWork(ScrapeCrawlLinks(ScrapeLinksBy.BY_SELECTOR.toString, "a.a-link-normal.a-text-normal")),
-              PageWork(ScrapeCrawlLinks(ScrapeLinksBy.BY_SELECTOR.toString, "li.a-normal a"), Some(Element(FindElementBy.BY_CSS_SELECTOR.toString, "div.a-text-center[role=\"navigation\"]")))
+              PageWork(ScrapeCrawlLinks(ScrapeLinksBy.BY_SELECTOR.toString, "li.a-normal a"), Some(Element(FindElementBy.CSS_SELECTOR.toString, "div.a-text-center[role=\"navigation\"]")))
             )
           ),
           WebpageIdentifier(
@@ -64,18 +64,20 @@ object HttpListeningActor extends FsLogging {
                 UniqueTag(
                   "span.nav-a-content",
                   Some("Toys & Games"),
-                  Some(Element(FindElementBy.BY_ID.toString, "#nav-progressive-subnav"))
+                  Some(Element(FindElementBy.ID.toString, "#nav-progressive-subnav"))
                 ),
                 UniqueTag(
                   "#wishListMainButton-announce",
                   Some("Add to Wish List"),
-                  Some(Element(FindElementBy.BY_ID.toString, "#addToWishlist_feature_div"))
+                  Some(Element(FindElementBy.ID.toString, "#addToWishlist_feature_div"))
                 )
               ),
-              Seq(UniqueString("Toys & Games", Some(Element(FindElementBy.BY_ID.toString, "#nav-progressive-subnav"))))
+              Seq(UniqueString("Toys & Games", Some(Element(FindElementBy.ID.toString, "#nav-progressive-subnav"))))
               ),
             Seq(
-              PageWork(ScrapeWithSelector("span#productTitle", DataToExtract("product_name", ScrapeDataTypes.TEXT), "toys"))
+              PageWork(ScrapeData(FindElementBy.ID, "#productTitle", DataToExtract("product_name", ScrapeDataTypes.TEXT), "toys")),
+              PageWork(ScrapeData(FindElementBy.ID, "#wayfinding-breadcrumbs_container", DataToExtract("hierarchy", ScrapeDataTypes.TEXT), "toys")),
+
             )
           )
         )

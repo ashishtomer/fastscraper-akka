@@ -5,7 +5,7 @@ import scala.util.{Failure, Success}
 
 object Miscellaneous extends FsLogging {
   val CRAWL_LINK_COLLECTION = "crawl_links"
-  val CRAWL_LINK_INDEX = "_link_to_crawl"
+  val _LINK_TO_CRAWL = "_link_to_crawl"
   val IS_CRAWLED = "is_crawled"
 
   val CrawlLinkCollection: Option[String] => String = jobIdOpt => {

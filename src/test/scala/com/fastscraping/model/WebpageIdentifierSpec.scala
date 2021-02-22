@@ -2,7 +2,8 @@ package com.fastscraping.model
 
 import com.fastscraping.pagenavigation.ActionsAndScrape
 import com.fastscraping.pagenavigation.action.SelectorActions
-import com.fastscraping.pagenavigation.scrape.ScrapeWithSelector
+import com.fastscraping.pagenavigation.scrape.ScrapeData
+import com.fastscraping.pagenavigation.selenium.ElementFinder.FindElementBy
 import org.scalatest.WordSpecLike
 import play.api.libs.json.Json
 
@@ -38,7 +39,7 @@ class WebpageIdentifierSpec extends WordSpecLike {
       val parsed = Json.parse(testJson.toString)
       val actionsAndScrapeData = parsed.as[ActionsAndScrape]
 
-      assert(actionsAndScrapeData.isInstanceOf[ScrapeWithSelector])
+      assert(actionsAndScrapeData.isInstanceOf[ScrapeData])
     }
 
     "write json from instance of Actions" in {
@@ -49,7 +50,7 @@ class WebpageIdentifierSpec extends WordSpecLike {
     }
 
     "write json from instance of ScrapeData" in {
-      val actions = ScrapeWithSelector("div.classb > p", DataToExtract("class b text", ScrapeDataTypes.TEXT), "text2").asInstanceOf[ActionsAndScrape]
+      val actions = ScrapeData(FindElementBy.CSS_SELECTOR, "div.classb > p", DataToExtract("class b text", ScrapeDataTypes.TEXT), "text2").asInstanceOf[ActionsAndScrape]
       val jsonText = Json.toJson(actions).toString()
 
       assert(jsonText.contains("dataType"))
@@ -61,7 +62,7 @@ class WebpageIdentifierSpec extends WordSpecLike {
         PageUniqueness("http://welcome.com", Seq(UniqueTag("<h1>", Some("Welcome heading"))), Seq(UniqueString("Welcome"))),
 
         Seq(
-          PageWork(ScrapeWithSelector("div.classb > p", DataToExtract("class b text", ScrapeDataTypes.TEXT), "text2")),
+          PageWork(ScrapeData(FindElementBy.CSS_SELECTOR, "div.classb > p", DataToExtract("class b text", ScrapeDataTypes.TEXT), "text2")),
           PageWork(SelectorActions("div.classb > p > button", Some("click")))
         )
       )

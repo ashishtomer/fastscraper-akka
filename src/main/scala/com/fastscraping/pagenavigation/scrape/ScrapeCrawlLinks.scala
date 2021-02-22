@@ -11,6 +11,7 @@ import org.openqa.selenium.WebElement
 
 case class ScrapeCrawlLinks(findLinksBy: String,
                             value: String,
+//                            priority: Option[Int] = None, //High number represent highest priority. 0 == None
                             doScrollDown: Option[Boolean] = None,
                             scrollRetries: Option[Int] = None) extends Scraping {
 
@@ -26,12 +27,15 @@ case class ScrapeCrawlLinks(findLinksBy: String,
     getLinkElements()
       .foreach { linkElement =>
         val link = linkElement.getAttribute("href")
-        val document: Map[String, AnyRef] = Map(
-          Miscellaneous.CRAWL_LINK_INDEX -> link.asInstanceOf[AnyRef],
-          Miscellaneous.IS_CRAWLED -> false.asInstanceOf[AnyRef]
-        )
 
-        database.saveDocument(indexName(jobId), pageReader.getCurrentUrl, document)
+        if (!database.isLinkScraped(jobId, link)) {
+          val document: Map[String, AnyRef] = Map(
+            Miscellaneous._LINK_TO_CRAWL -> link.asInstanceOf[AnyRef],
+            Miscellaneous.IS_CRAWLED -> false.asInstanceOf[AnyRef]
+          )
+
+          database.saveDocument(indexName(jobId), pageReader.getCurrentUrl, document)
+        }
       }
 
     this

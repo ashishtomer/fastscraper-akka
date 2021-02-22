@@ -1,15 +1,17 @@
 package com.fastscraping.pagenavigation.selenium
 
+import java.util.concurrent.TimeUnit
+
 import org.openqa.selenium.JavascriptExecutor
 import org.openqa.selenium.remote.RemoteWebDriver
 
-class PageReader(val driver: RemoteWebDriver) extends FsJavascriptExecutor with InputDeviceProvider
-  with CapabilitiesProvider with ElementFinder with PageInfoProvider with BrowserHandler with TimeoutManager
-  with FrameWindowNavigator with CookieManager with BrowserNavigator with WindowHandler {
+class PageReader(val driver: RemoteWebDriver) extends InputDeviceProvider with CapabilitiesProvider with ElementFinder
+  with PageInfoProvider with BrowserHandler with TimeoutManager with FrameWindowNavigator with CookieManager
+  with BrowserNavigator with WindowHandler with FsJavascriptExecutor {
 
   val jsExecutor = driver.asInstanceOf[JavascriptExecutor]
 
-  override def executeScript(script: String, args: Any*): AnyRef = jsExecutor.executeScript(script, args)
+  def getDriver = driver
 
   /**
    * Load a new web page in the current browser window. This is done using an HTTP GET operation,
@@ -23,9 +25,12 @@ class PageReader(val driver: RemoteWebDriver) extends FsJavascriptExecutor with 
    * @param url The URL to load. It is best to use a fully qualified URL
    */
   def get(url: String) = driver.get(url)
-
 }
 
 object PageReader {
-  def apply(driver: RemoteWebDriver): PageReader = new PageReader(driver)
+  def apply(driver: RemoteWebDriver): PageReader = {
+    val pr = new PageReader(driver)
+    pr.timeouts.implicitlyWait(10L, TimeUnit.SECONDS).pageLoadTimeout(10L, TimeUnit.SECONDS)
+    pr
+  }
 }

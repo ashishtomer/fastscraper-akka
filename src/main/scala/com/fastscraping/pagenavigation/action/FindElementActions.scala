@@ -24,62 +24,62 @@ case class FindElementActions(action: String,
     implicit contextElement: Option[Element]): A = {
 
     val elems: Seq[WebElement] = FindElementBy.withName(findElementBy) match {
-      case BY_X_PATH =>
+      case X_PATH =>
         if (multiple) {
           performer.pageReader.findElementsByXPath(value)
         } else {
-          Seq(getElement(performer.pageReader.findElementByXPath(value))(Some(s"$BY_X_PATH : $value not found")))
+          Seq(getElement(performer.pageReader.findElementByXPath(value))(Some(s"$X_PATH : $value not found")))
         }
-      case BY_TAG_NAME =>
+      case TAG_NAME =>
         if (multiple) {
           performer.pageReader.findElementsByTagName(value)
         } else {
-          Seq(getElement(performer.pageReader.findElementByTagName(value))(Some(s"$BY_TAG_NAME : $value not found")))
+          Seq(getElement(performer.pageReader.findElementByTagName(value))(Some(s"$TAG_NAME : $value not found")))
         }
-      case BY_CSS_SELECTOR =>
+      case CSS_SELECTOR =>
         if (multiple) {
           performer.pageReader.findElementsByCssSelector(value)
         } else {
-          Seq(getElement(performer.pageReader.findElementByCssSelector(value))(Some(s"$BY_CSS_SELECTOR : $value not found")))
+          Seq(getElement(performer.pageReader.findElementByCssSelector(value))(Some(s"$CSS_SELECTOR : $value not found")))
         }
-      case BY_NAME =>
+      case NAME =>
         if (multiple) {
           performer.pageReader.findElementsByName(value)
         } else {
-          Seq(getElement(performer.pageReader.findElementByName(value))(Some(s"$BY_NAME : $value not found")))
+          Seq(getElement(performer.pageReader.findElementByName(value))(Some(s"$NAME : $value not found")))
         }
 
-      case BY_PARTIAL_LINK_TEXT =>
+      case PARTIAL_LINK_TEXT =>
         if (multiple) {
           performer.pageReader.findElementsByPartialLinkText(value)
         } else {
           Seq(getElement(performer.pageReader.findElementByPartialLinkText(value))(
-            Some(s"$BY_PARTIAL_LINK_TEXT : $value not found")))
+            Some(s"$PARTIAL_LINK_TEXT : $value not found")))
         }
-      case BY_LINK_TEXT =>
+      case LINK_TEXT =>
         if (multiple) {
           performer.pageReader.findElementsByLinkText(value)
         } else {
-          Seq(getElement(performer.pageReader.findElementByLinkText(value))(Some(s"$BY_LINK_TEXT : $value not found")))
+          Seq(getElement(performer.pageReader.findElementByLinkText(value))(Some(s"$LINK_TEXT : $value not found")))
         }
-      case BY_CLASS_NAME =>
+      case CLASS_NAME =>
         if (multiple) {
           performer.pageReader.findElementsByClassName(value)
         } else {
-          Seq(getElement(performer.pageReader.findElementByClassName(value))(Some(s"$BY_CLASS_NAME : $value not found")))
+          Seq(getElement(performer.pageReader.findElementByClassName(value))(Some(s"$CLASS_NAME : $value not found")))
         }
-      case BY_TEXT =>
+      case TEXT =>
         val xPath = s"//*[contains(text(),'$value')]"
         if(multiple) {
           performer.pageReader.findElementsByXPath(xPath)
         }else {
-          Seq(getElement(performer.pageReader.findElementByXPath(xPath))(Some(s"[$BY_TEXT='$value'] not found")))
+          Seq(getElement(performer.pageReader.findElementByXPath(xPath))(Some(s"[$TEXT='$value'] not found")))
         }
-      case BY_ID =>
+      case ID =>
         if (multiple) {
           performer.pageReader.findElementsById(value)
         } else {
-          Seq(getElement(performer.pageReader.findElementById(value))(Some(s"$BY_ID : $value not found")))
+          Seq(getElement(performer.pageReader.findElementById(value))(Some(s"$ID : $value not found")))
         }
 
     }

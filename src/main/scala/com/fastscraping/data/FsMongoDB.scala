@@ -58,7 +58,7 @@ class FsMongoDB(db: MongoDatabase) extends Database {
     WithCollection(CrawlLinkCollection(jobId)) { mongoCollection =>
       IgnoreDuplication {
         mongoCollection.replaceOne(
-          Filters.eq(CRAWL_LINK_INDEX, link),
+          Filters.eq(_LINK_TO_CRAWL, link),
           new Document(CrawlLink(link, true).asJavaMap),
           doReplaceUpsert
         )
@@ -70,6 +70,16 @@ class FsMongoDB(db: MongoDatabase) extends Database {
     case Success(x) => x
     case Failure(exception) if exception.getMessage.contains("duplicate key error") =>
     case Failure(exception) => throw exception
+  }
+
+  override def isLinkScraped(jobId: Option[String], link: String): Boolean = {
+    WithCollection(CrawlLinkCollection(jobId)) { mongoCollection =>
+      val element = mongoCollection
+        .find(Filters.and(Filters.eq(_LINK_TO_CRAWL, link), Filters.eq(IS_CRAWLED, true)))
+        .first()
+
+      element != null
+    }
   }
 }
 

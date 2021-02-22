@@ -48,10 +48,8 @@ class WorkerActor(context: ActorContext[WorkerActorMessage])
   private val linkQueue: mutable.Queue[String] = mutable.Queue()
   private implicit lazy val pageReader: PageReader = PageReader(driver)
   private lazy val options = new ChromeOptions()
-  private lazy val driver: RemoteWebDriver = new ChromeDriver(
-    options
-      .addArguments("start-maximized", "disable-infobars", "--disable-extensions",
-      "--disable-dev-shm-usage", "--no-sandbox"))
+  private lazy val driver: RemoteWebDriver = new ChromeDriver(options.addArguments("start-maximized",
+    "disable-infobars", "--disable-extensions", "--disable-dev-shm-usage", "--no-sandbox"))
 
   override def onMessage(msg: WorkerActorMessage): Behavior[WorkerActorMessage] = startScraping(msg)
 

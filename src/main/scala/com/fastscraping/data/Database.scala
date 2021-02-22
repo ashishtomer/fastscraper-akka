@@ -17,6 +17,8 @@ trait Database {
 
   def saveDocument(index: String, documentId: String, doc: Map[String, AnyRef])
 
+  def isLinkScraped(jobId: Option[String], link: String): Boolean
+
   def nextScrapeLinks(jobId: Option[String], limit: Int = 1)(implicit ec: ExecutionContext): mutable.Buffer[CrawlLink]
 
   def markLinkAsScraped(jobId: Option[String], link: String)

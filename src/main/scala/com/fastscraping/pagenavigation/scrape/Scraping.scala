@@ -60,7 +60,7 @@ object Scraping {
     JsSuccess {
       val jsonFields = json.as[JsObject].keys
       if (jsonFields.contains("selector") && jsonFields.contains("dataToExtract")) {
-        json.as[ScrapeWithSelector]
+        json.as[ScrapeData]
       } else if (jsonFields.contains("linkMatch")) {
         json.as[ScrapeLinks]
       } else {
@@ -72,7 +72,7 @@ object Scraping {
   }
 
   implicit val writes: Writes[Scraping] = {
-    case s: ScrapeWithSelector => Json.toJson(s)
+    case s: ScrapeData => Json.toJson(s)
     case s: ScrapeLinks => Json.toJson(s)
     case o => throw JsonWriteException(s"$o is not an instance of ${Scraping.getClass}")
   }

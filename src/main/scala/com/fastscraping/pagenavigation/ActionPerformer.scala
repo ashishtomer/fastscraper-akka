@@ -10,7 +10,7 @@ import scala.concurrent.duration.Duration
 
 class ActionPerformer(val pageReader: PageReader) {
 
-  private val actions = new Actions(pageReader.driver)
+  private val actions = new Actions(pageReader.getDriver)
 
   case class WithElement(selector: String)(implicit contextElement: Option[Element]) {
     def map(f: WebElement => Actions): Boolean = {

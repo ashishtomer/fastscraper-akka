@@ -2,7 +2,7 @@ package com.fastscraping.data
 
 import java.util.concurrent.TimeUnit
 
-import com.fastscraping.utils.Miscellaneous.{CRAWL_LINK_INDEX, CrawlLinkCollection}
+import com.fastscraping.utils.Miscellaneous.{_LINK_TO_CRAWL, CrawlLinkCollection}
 import com.mongodb.client.model.IndexOptions
 import com.mongodb.client.{MongoClient, MongoClients, MongoDatabase}
 import com.mongodb.connection.{ClusterSettings, ConnectionPoolSettings}
@@ -55,7 +55,7 @@ object MongoProvider {
     fsScrapedDataDb
       .getCollection(s"${CrawlLinkCollection(jobId)}")
       .createIndex(
-        new Document(Map(CRAWL_LINK_INDEX -> 1).asInstanceOf[Map[String, AnyRef]].asJava),
+        new Document(Map(_LINK_TO_CRAWL -> 1).asInstanceOf[Map[String, AnyRef]].asJava),
         new IndexOptions().unique(true)
       )
 
