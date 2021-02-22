@@ -19,7 +19,7 @@ case class ScrapeLinks(linkMatch: Option[String] = Some(".+"),
 
   require(linkMatch.isDefined)
 
-  val scrapeType = SCRAPE_LINKS
+  val name = SCRAPE_LINKS
 
   override def collectionName(jobId: Option[String]) = Miscellaneous.CollectionByJobId(jobId, index)
 
@@ -37,6 +37,16 @@ case class ScrapeLinks(linkMatch: Option[String] = Some(".+"),
 
       Seq(PageData(collectionName(jobId), linksJson))
     }
+  }
+
+  def saveScrapedData(pageData: Seq[PageData])(implicit database: Database): Unit = {
+    pageData
+      .groupBy(_.collection)
+      .foreach {
+        case (collection, data) =>
+          val docs = data.map(_.doc)
+          database.saveDocuments(collection, docs)
+      }
   }
 }
 

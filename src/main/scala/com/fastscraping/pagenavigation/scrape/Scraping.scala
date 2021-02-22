@@ -2,7 +2,6 @@ package com.fastscraping.pagenavigation.scrape
 
 import com.fastscraping.data.Database
 import com.fastscraping.model.Element
-import com.fastscraping.pagenavigation.scrape.ScrapeType.ScrapeType
 import com.fastscraping.pagenavigation.selenium.PageReader
 import com.fastscraping.pagenavigation.{ActionPerformer, ActionsAndScrape}
 import com.fastscraping.utils.{ElementNotFoundException, FsLogging, JsonParsingException, JsonWriteException}
@@ -11,7 +10,6 @@ import play.api.libs.json._
 import scala.util.control.NonFatal
 
 trait Scraping extends ActionsAndScrape with FsLogging {
-  def scrapeType: ScrapeType
 
   def collectionName(jobId: Option[String] = None): String
 
@@ -26,6 +24,7 @@ trait Scraping extends ActionsAndScrape with FsLogging {
 
   /**
    * Number of retries to do. If the number is 0 no retry. If number is any number less than 0 then infinite scrolling
+   *
    * @return
    */
   def scrollRetries: Option[Int]

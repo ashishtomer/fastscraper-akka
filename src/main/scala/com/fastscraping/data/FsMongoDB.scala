@@ -4,7 +4,7 @@ import java.util
 
 import com.fastscraping.data.bson.CrawlLink
 import com.fastscraping.utils.Miscellaneous._
-import com.mongodb.client.model.{Filters, ReplaceOptions}
+import com.mongodb.client.model.{BulkWriteOptions, Filters, ReplaceOneModel, ReplaceOptions}
 import com.mongodb.client.{MongoCollection, MongoDatabase}
 import org.bson.Document
 
@@ -48,10 +48,43 @@ class FsMongoDB(db: MongoDatabase) extends Database {
     }
   }
 
-  override def saveDocument(collection: String, documentId: String, doc: Document) = Try {
-    WithCollection(collection)(mongoCollection =>
-      IgnoreDuplication(mongoCollection.replaceOne(Filters.eq(id, documentId), doc, doReplaceUpsert))
-    )
+  override def saveDocument(collection: String, documentId: String, doc: Document) =
+    PrintMetric(s"saving document $doc") {
+      WithCollection(collection)(mongoCollection =>
+        IgnoreDuplication(mongoCollection.replaceOne(Filters.eq(id, documentId), doc, doReplaceUpsert))
+      )
+    }
+
+  def saveDocument(collection: String, doc: Document): Unit = {
+    PrintMetric(s"saving document $doc") {
+      WithCollection(collection)(mongoCollection =>
+        IgnoreDuplication(mongoCollection.replaceOne(new Document(), doc, doReplaceUpsert))
+      )
+    }
+  }
+
+  def saveDocument(collection: String, doc: Map[String, AnyRef]): Unit = {
+    PrintMetric(s"[collection=$collection]saving document $doc") {
+      val mongoDoc = new Document()
+      doc.foreach(keyVal => mongoDoc.append(keyVal._1, keyVal._2))
+      WithCollection(collection)(mongoCollection =>
+        IgnoreDuplication(mongoCollection.replaceOne(new Document(), mongoDoc, doReplaceUpsert))
+      )
+    }
+  }
+
+  def saveDocuments(collection: String, docs: Seq[Map[String, AnyRef]]): Unit = {
+    val bulkDocs = docs.map{ doc =>
+      val mongoDoc = new Document()
+      doc.foreach(keyVal => mongoDoc.append(keyVal._1, keyVal._2))
+      new ReplaceOneModel[Document](new Document(), mongoDoc, doReplaceUpsert)
+    }.asJava
+    val options = new BulkWriteOptions().ordered(false).bypassDocumentValidation(true)
+    PrintMetric(s"saving document $docs") {
+      WithCollection(collection)(mongoCollection =>
+        IgnoreDuplication(mongoCollection.bulkWrite(bulkDocs, options))
+      )
+    }
   }
 
   override def nextScrapeLinks(jobId: Option[String], limit: Int = 1)(implicit ec: ExecutionContext) = {

@@ -10,6 +10,7 @@ import play.api.libs.json.Format
 
 import scala.annotation.tailrec
 import scala.jdk.CollectionConverters._
+import scala.util.{Failure, Success, Try}
 import scala.util.control.NonFatal
 
 trait ElementFinder extends FsLogging {
@@ -128,6 +129,7 @@ trait ElementFinder extends FsLogging {
           retryMillis = retryMillis * 2
           tryExecution
         } else {
+          logger.error("Could not perform find operation", ex)
           throw ex
         }
     }
@@ -150,8 +152,7 @@ object ElementFinder extends FsLogging {
       try {
         Some(f)
       } catch {
-        case e: NoSuchElementException =>
-          logger.warn(s"The element not found on ${webDriver.getCurrentUrl}. " + e.getMessage)
+        case e: NoSuchElementException => logger.warn(s"The element not found on ${webDriver.getCurrentUrl}")
           None
       }
     }

@@ -6,6 +6,7 @@ import scala.util.{Failure, Success}
 object Miscellaneous extends FsLogging {
   val CRAWL_LINK_COLLECTION = "crawl_links"
   val _LINK_TO_CRAWL = "_link_to_crawl"
+  val FROM_PAGE = "from_page"
   val IS_CRAWLED = "is_crawled"
 
   val CrawlLinkCollection: Option[String] => String = jobIdOpt => {
@@ -36,5 +37,13 @@ object Miscellaneous extends FsLogging {
     val ret = f
     logger.info(s"Time taken in $metricName: ${System.currentTimeMillis() - start}")
     ret
+  }
+
+  def PrintFutureMetric[T](metricName: String)(f: => Future[T])(implicit ec: ExecutionContext): Future[T] = {
+    val start = System.currentTimeMillis()
+    f.map { result =>
+      logger.info(s"Time taken in $metricName: ${System.currentTimeMillis() - start}")
+      result
+    }
   }
 }

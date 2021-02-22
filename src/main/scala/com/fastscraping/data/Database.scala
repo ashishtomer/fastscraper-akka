@@ -20,6 +20,12 @@ trait Database {
 
   def saveDocument(collection: String, documentId: String, doc: Document)
 
+  def saveDocument(collection: String, doc: Document)
+
+  def saveDocument(collection: String, doc: Map[String, AnyRef])
+
+  def saveDocuments(collection: String, docs: Seq[Map[String, AnyRef]])
+
   def isLinkScraped(jobId: Option[String], link: String): Boolean
 
   def nextScrapeLinks(jobId: Option[String], limit: Int = 1)(implicit ec: ExecutionContext): mutable.Buffer[CrawlLink]

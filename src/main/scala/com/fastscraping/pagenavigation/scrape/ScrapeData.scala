@@ -15,7 +15,7 @@ case class ScrapeData(by: FindElementBy,
                       doScrollDown: Option[Boolean] = None,
                       scrollRetries: Option[Int] = None) extends Scraping {
 
-  val scrapeType = ScrapeType.SCRAPE_TEXT_WITH_SELECTOR
+  val name = ScrapeType.SCRAPE_TEXT_WITH_SELECTOR
 
   override def collectionName(jobId: Option[String]): String = Miscellaneous.CollectionByJobId(jobId, index)
 

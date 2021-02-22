@@ -10,8 +10,6 @@ import scala.util.{Failure, Success, Try}
 
 trait Actions extends ActionsAndScrape with FsLogging {
 
-  def name: String
-
   def perform(actionPerformer: ActionPerformer)(implicit contextElement: Option[Element])
 
   val times: Option[Int]
