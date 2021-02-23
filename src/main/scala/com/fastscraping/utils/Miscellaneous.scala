@@ -34,15 +34,16 @@ object Miscellaneous extends FsLogging {
 
   def PrintMetric[T](metricName: String)(f: => T): T = {
     val start = System.currentTimeMillis()
+    logger.info(metricName)
     val ret = f
-    logger.info(s"Time taken in $metricName: ${System.currentTimeMillis() - start}")
+    logger.info(s"[timeTaken=${System.currentTimeMillis() - start}] $metricName")
     ret
   }
 
   def PrintFutureMetric[T](metricName: String)(f: => Future[T])(implicit ec: ExecutionContext): Future[T] = {
     val start = System.currentTimeMillis()
     f.map { result =>
-      logger.info(s"Time taken in $metricName: ${System.currentTimeMillis() - start}")
+      logger.info(s"[timeTaken=${System.currentTimeMillis() - start}] $metricName")
       result
     }
   }

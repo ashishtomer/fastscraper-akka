@@ -1,7 +1,7 @@
 package com.fastscraping.model
 
 import com.fastscraping.pagenavigation.ActionsAndScrape
-import com.fastscraping.pagenavigation.action.SelectorActions
+import com.fastscraping.pagenavigation.action.SelectorAction
 import com.fastscraping.pagenavigation.scrape.ScrapeData
 import com.fastscraping.pagenavigation.selenium.ElementFinder.FindElementBy
 import org.scalatest.WordSpecLike
@@ -21,7 +21,7 @@ class WebpageIdentifierSpec extends WordSpecLike {
       val parsed = Json.parse(testJson.toString)
       val actionsAndScrapeData = parsed.as[ActionsAndScrape]
 
-      assert(actionsAndScrapeData.isInstanceOf[SelectorActions])
+      assert(actionsAndScrapeData.isInstanceOf[SelectorAction])
     }
 
     "read json to ScrapeData" in {
@@ -43,7 +43,7 @@ class WebpageIdentifierSpec extends WordSpecLike {
     }
 
     "write json from instance of Actions" in {
-      val actions = SelectorActions("div.classb > p", Some("click")).asInstanceOf[ActionsAndScrape]
+      val actions = SelectorAction("div.classb > p", Some("click")).asInstanceOf[ActionsAndScrape]
       val jsonText = Json.toJson(actions).toString()
 
       assert(jsonText.contains("action"))
@@ -63,7 +63,7 @@ class WebpageIdentifierSpec extends WordSpecLike {
 
         Seq(
           PageWork(ScrapeData(FindElementBy.CSS_SELECTOR, "div.classb > p", DataToExtract("class b text", ScrapeDataTypes.TEXT), "text2")),
-          PageWork(SelectorActions("div.classb > p > button", Some("click")))
+          PageWork(SelectorAction("div.classb > p > button", Some("click")))
         )
       )
 

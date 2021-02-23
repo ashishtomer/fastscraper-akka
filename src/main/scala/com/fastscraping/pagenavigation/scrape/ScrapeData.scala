@@ -36,7 +36,7 @@ case class ScrapeData(by: FindElementBy,
             }
 
           case None =>
-            val err = s"[$by=$value]' not found on ${pageReader.getCurrentUrl} to scrape in context=$contextElement"
+            val err = s"[$by=$value]' not found on ${pageReader.currentUrl} to scrape in context=$contextElement"
             logger.error(err)
             Seq()
         }

@@ -1,16 +1,14 @@
 package com.fastscraping.pagenavigation.selenium
 
 import com.fastscraping.model.Element
-import com.fastscraping.pagenavigation.ActionPerformer
+import com.fastscraping.pagenavigation.action.ActionPerformer
 import com.fastscraping.pagenavigation.selenium.ElementFinder.PageContext
 import com.fastscraping.utils.{EnumFormat, FsLogging}
 import org.openqa.selenium.remote.RemoteWebDriver
 import org.openqa.selenium.{By, NoSuchElementException, WebElement}
 import play.api.libs.json.Format
 
-import scala.annotation.tailrec
 import scala.jdk.CollectionConverters._
-import scala.util.{Failure, Success, Try}
 import scala.util.control.NonFatal
 
 trait ElementFinder extends FsLogging {
@@ -33,7 +31,7 @@ trait ElementFinder extends FsLogging {
     }
   }
 
-  def findElements(by: FindElementBy, value: String)(implicit ce: Option[Element]): Seq[WebElement] = {
+  def findElements(by: FindElementBy, value: String)(implicit contextElement: Option[Element]): Seq[WebElement] = {
     by match {
       case ID => findElementsById(value)
       case X_PATH => findElementsByXPath(value)
@@ -46,75 +44,75 @@ trait ElementFinder extends FsLogging {
     }
   }
 
-  def findElementById(id: String)(implicit contextElement: Option[Element]): Option[WebElement] = WithRetry {
+  private def findElementById(id: String)(implicit contextElement: Option[Element]): Option[WebElement] = WithRetry {
     driver findOne By.id(id)
   }
 
-  def findElementsById(id: String)(implicit contextElement: Option[Element]): Seq[WebElement] = WithRetry {
+  private def findElementsById(id: String)(implicit contextElement: Option[Element]): Seq[WebElement] = WithRetry {
     driver findMany By.id(id)
   }
 
-  def findElementByClassName(className: String)(implicit contextElement: Option[Element]): Option[WebElement] = WithRetry {
+  private def findElementByClassName(className: String)(implicit contextElement: Option[Element]): Option[WebElement] = WithRetry {
     driver findOne By.className(className)
   }
 
-  def findElementsByClassName(className: String)(implicit contextElement: Option[Element]): Seq[WebElement] = WithRetry {
+  private def findElementsByClassName(className: String)(implicit contextElement: Option[Element]): Seq[WebElement] = WithRetry {
     driver findMany By.className(className)
   }
 
-  def findElementByLinkText(linkText: String)(implicit contextElement: Option[Element]): Option[WebElement] = WithRetry {
+  private def findElementByLinkText(linkText: String)(implicit contextElement: Option[Element]): Option[WebElement] = WithRetry {
     driver findOne By.linkText(linkText)
   }
 
-  def findElementsByLinkText(linkText: String)(implicit contextElement: Option[Element]): Seq[WebElement] = WithRetry {
+  private def findElementsByLinkText(linkText: String)(implicit contextElement: Option[Element]): Seq[WebElement] = WithRetry {
     driver findMany By.linkText(linkText)
   }
 
-  def findElementByPartialLinkText(partialLinkText: String)(implicit contextElement: Option[Element]) = WithRetry {
+  private def findElementByPartialLinkText(partialLinkText: String)(implicit contextElement: Option[Element]) = WithRetry {
     driver findOne By.partialLinkText(partialLinkText)
   }
 
-  def findElementsByPartialLinkText(partialLinkText: String)(implicit contextElement: Option[Element]) = WithRetry {
+  private def findElementsByPartialLinkText(partialLinkText: String)(implicit contextElement: Option[Element]) = WithRetry {
     driver findMany By.partialLinkText(partialLinkText)
   }
 
-  def findElementByName(name: String)(implicit contextElement: Option[Element]): Option[WebElement] = WithRetry {
+  private def findElementByName(name: String)(implicit contextElement: Option[Element]): Option[WebElement] = WithRetry {
     driver findOne By.name(name)
   }
 
-  def findElementsByName(name: String)(implicit contextElement: Option[Element]): Seq[WebElement] = WithRetry {
+  private def findElementsByName(name: String)(implicit contextElement: Option[Element]): Seq[WebElement] = WithRetry {
     driver findMany By.name(name)
   }
 
-  def findElementByCssSelector(cssSelector: String)(implicit contextElement: Option[Element]) = WithRetry {
+  private def findElementByCssSelector(cssSelector: String)(implicit contextElement: Option[Element]) = WithRetry {
     driver findOne By.cssSelector(cssSelector)
   }
 
-  def findElementsByCssSelector(cssSelector: String)(implicit contextElement: Option[Element]) = WithRetry {
+  private def findElementsByCssSelector(cssSelector: String)(implicit contextElement: Option[Element]) = WithRetry {
     driver findMany By.cssSelector(cssSelector)
   }
 
-  def findElementByTagName(tagName: String)(implicit contextElement: Option[Element]) = WithRetry {
+  private def findElementByTagName(tagName: String)(implicit contextElement: Option[Element]) = WithRetry {
     driver findOne By.tagName(tagName)
   }
 
-  def findElementsByTagName(tagName: String)(implicit contextElement: Option[Element]): Seq[WebElement] = WithRetry {
+  private def findElementsByTagName(tagName: String)(implicit contextElement: Option[Element]): Seq[WebElement] = WithRetry {
     driver findMany By.tagName(tagName)
   }
 
-  def findElementByXPath(xPath: String)(implicit contextElement: Option[Element]): Option[WebElement] = WithRetry {
+  private def findElementByXPath(xPath: String)(implicit contextElement: Option[Element]): Option[WebElement] = WithRetry {
     driver findOne By.xpath(xPath)
   }
 
-  def findElementsByXPath(xPath: String)(implicit contextElement: Option[Element]): Seq[WebElement] = WithRetry {
+  private def findElementsByXPath(xPath: String)(implicit contextElement: Option[Element]): Seq[WebElement] = WithRetry {
     driver findMany By.xpath(xPath)
   }
 
-  def findElementByText(partialText: String)(implicit contextElement: Option[Element]): Option[WebElement] = WithRetry {
+  private def findElementByText(partialText: String)(implicit contextElement: Option[Element]): Option[WebElement] = WithRetry {
     findElementByXPath(s"//*[text()='$partialText']")
   }
 
-  def findElementsByText(partialText: String)(implicit contextElement: Option[Element]): Seq[WebElement] = WithRetry {
+  private def findElementsByText(partialText: String)(implicit contextElement: Option[Element]): Seq[WebElement] = WithRetry {
     findElementsByXPath(s"//*[text()='$partialText']")
   }
 
@@ -152,7 +150,8 @@ object ElementFinder extends FsLogging {
       try {
         Some(f)
       } catch {
-        case e: NoSuchElementException => logger.warn(s"The element not found on ${webDriver.getCurrentUrl}")
+        case e: NoSuchElementException =>
+          logger.warn(s"The element not found on ${webDriver.getCurrentUrl}")
           None
       }
     }

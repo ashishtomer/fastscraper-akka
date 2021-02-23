@@ -1,10 +1,11 @@
 package com.fastscraping.pagenavigation.selenium
 
 import com.fastscraping.data.Database
-import com.fastscraping.model.{Element, PageWork, WebpageIdentifier}
-import com.fastscraping.pagenavigation.ActionPerformer
-import com.fastscraping.pagenavigation.action.Actions
+import com.fastscraping.model.{ActionName, Element, PageWork, WebpageIdentifier}
+import com.fastscraping.pagenavigation.action.{Action, ActionPerformer, FindElementAction}
 import com.fastscraping.pagenavigation.scrape.{PageData, Scraping}
+import com.fastscraping.pagenavigation.selenium.ElementFinder.FindElementBy
+import com.fastscraping.pagenavigation.selenium.ScrapeJobExecutor._
 import com.fastscraping.utils.Miscellaneous._
 import com.fastscraping.utils.{FsLogging, MultipleMatchingIdentifiersException}
 import org.openqa.selenium.WebElement
@@ -16,48 +17,51 @@ class ScrapeJobExecutor(implicit pageReader: PageReader, db: Database) extends F
 
   private val actionPerformer = ActionPerformer(pageReader)
 
-  def execute(link: String, webpageIdentifiers: ListBuffer[WebpageIdentifier], jobId: Option[String])(implicit ec: ExecutionContext) = {
+  def execute(link: String, webpageIdentifiers: ListBuffer[WebpageIdentifier], blockingUrl: Option[String], jobId: Option[String])(implicit ec: ExecutionContext) = {
 
     pageReader.get(link)
 
-    filterPageModifier(webpageIdentifiers)
-      .map {
+    filterPageModifier(webpageIdentifiers) map {
         case Some(webpageIdentifier) => PrintMetric("performing operations") {
-          performOperations(jobId, webpageIdentifier)
+          performOperations(jobId, webpageIdentifier, blockingUrl)
         }
-        case None => logger.warn(s"No webpage identifier matched with ${pageReader.getCurrentUrl}")
-      }
-      .map { _ =>
+        case None => logger.warn(s"No webpage identifier matched with ${pageReader.currentUrl}")
+      } map { _ =>
         db.markLinkAsScraped(jobId, link)
         logger.info(s"Marked as scraped [link=$link]")
-      }
+      } recover {
+      case ex: MultipleMatchingIdentifiersException =>
+      //Do nothing for now
+    }
   }
 
-  private def performOperations(jobId: Option[String], webpageIdentifier: WebpageIdentifier) = {
+  private def performOperations(jobId: Option[String], webpageIdentifier: WebpageIdentifier, blockingUrl: Option[String]) = {
     val scrapedData = scala.collection.mutable.ListBuffer[PageData]()
 
     webpageIdentifier.pageWorks
       .foreach(pageWork => {
         implicit val ce = pageWork.contextElement
-        logger.info(s"[work=${pageWork.actionsAndScrapeData.name}] Starting")
+        logger.info(s"[work=${pageWork.actionsAndScrapeData.name}] Start")
         pageWork match {
-          case PageWork(actions: Actions, _) => actions.perform(actionPerformer)
+          case PageWork(actions: Action, _) => actions.perform(actionPerformer)
           case PageWork(scraping: Scraping, _) =>
             val dataFromPage = scraping.scrape(jobId)
             if (dataFromPage.nonEmpty) scrapedData.appendAll(dataFromPage)
         }
+        blockingUrl.foreach(url => if(pageReader.currentUrl == url) clearCacheHistory)
+        logger.info(s"[work=${pageWork.actionsAndScrapeData.name}] End")
       })
 
     scrapedData
       .groupBy(_.collection)
       .foreach {
-        case (collection, data) => db.saveDocument(collection, pageReader.getCurrentUrl, data.flatMap(_.doc).toMap)
+        case (collection, data) => db.saveDocument(collection, pageReader.currentUrl, data.flatMap(_.doc).toMap)
       }
   }
 
   private def filterPageModifier[M](webpageIdentifiers: ListBuffer[WebpageIdentifier])(
     implicit ec: ExecutionContext): Future[Option[WebpageIdentifier]] =
-    PrintFutureMetric(s"filtering page modifier on ${pageReader.getCurrentUrl}") {
+    PrintFutureMetric(s"filtering page modifier on ${pageReader.currentUrl}") {
 
       implicit val contextElement: Option[Element] = None
 
@@ -65,7 +69,7 @@ class ScrapeJobExecutor(implicit pageReader: PageReader, db: Database) extends F
 
         import pageIdentifier.pageUniqueness._
 
-        def urlRegexMatched() = Future(pageReader.getCurrentUrl.matches(urlRegex))
+        def urlRegexMatched() = Future(pageReader.currentUrl.matches(urlRegex))
 
         def anyUniqueTagNotFound() = Future {
           uniqueTags.exists { uniqueTag =>
@@ -76,7 +80,7 @@ class ScrapeJobExecutor(implicit pageReader: PageReader, db: Database) extends F
               else tagFound.getText != null && tagFound.getText.contains(uniqueTagText)
             }
 
-            val tagFoundOpt = pageReader.findElementByCssSelector(uniqueTag.selector)(uniqueTag.contextElement)
+            val tagFoundOpt = pageReader.findElement(FindElementBy.CSS_SELECTOR, uniqueTag.selector)(uniqueTag.contextElement)
             tagFoundOpt.isEmpty || !tagTextExists(tagFoundOpt.get)
 
           }
@@ -84,7 +88,7 @@ class ScrapeJobExecutor(implicit pageReader: PageReader, db: Database) extends F
 
         def uniqueStringNotExists() = Future {
           uniqueStrings.exists { uniqueString =>
-            val stringContextOpt = pageReader.findElementByTagName("body")(uniqueString.contextElement)
+            val stringContextOpt = pageReader.findElement(FindElementBy.TAG_NAME, "body")(uniqueString.contextElement)
             stringContextOpt.isEmpty ||
               stringContextOpt.get.getText == null ||
               !stringContextOpt.get.getText.contains(uniqueString.string)
@@ -118,13 +122,19 @@ class ScrapeJobExecutor(implicit pageReader: PageReader, db: Database) extends F
           if (sorted.head._1 < ScrapeJobExecutor.UrlRegexMatchScore) {
             None
           } else if (sorted.size > 1 && sorted.head._1 == sorted.tail.head._1) {
-            throw MultipleMatchingIdentifiersException(s"Two page identifiers matched for ${pageReader.getCurrentUrl}. $sorted")
+            throw MultipleMatchingIdentifiersException(s"Two page identifiers matched for ${pageReader.currentUrl}. $sorted")
           } else {
             Some(sorted.head._2)
           }
 
         }
     }
+
+  def clearCacheHistory(): Unit = {
+    logger.warn("Clearing cache!!")
+    pageReader.get("chrome://settings/clearBrowserData")
+    FindElementAction(ActionName.CLICK, FindElementBy.ID, "clearBrowsingDataConfirm").perform(actionPerformer)(None)
+  }
 }
 
 object ScrapeJobExecutor {
@@ -133,4 +143,5 @@ object ScrapeJobExecutor {
   val UrlRegexMatchScore = 47
   val UniqueTagMatchScore = 13
   val UniqueStringMatchScore = 2
+  val NoMatch = 0
 }

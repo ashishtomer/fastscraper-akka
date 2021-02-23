@@ -8,25 +8,25 @@ import play.api.libs.json.Json
 
 trait LinkManagerActorMessage
 
-class ScrapeJob(
-                 val seedURL: String,
-                 val webpageIdentifiers: Seq[WebpageIdentifier],
-                 val jobId: String = UUID.randomUUID().toString
+case class ScrapeJob(seedURL: String,
+                webpageIdentifiers: Seq[WebpageIdentifier],
+                blockingUrl: Option[String] = None,
+                jobId: String = UUID.randomUUID().toString
                ) extends LinkManagerActorMessage
 
 object ScrapeJob {
   implicit val fmt = Json.format[ScrapeJob]
 
   def apply(seedURL: String, webpageIdentifiers: Seq[WebpageIdentifier], jobId: String): ScrapeJob = {
-    new ScrapeJob(seedURL, webpageIdentifiers, jobId)
+    new ScrapeJob(seedURL, webpageIdentifiers, jobId = jobId)
+  }
+
+  def apply(seedURL: String, webpageIdentifiers: Seq[WebpageIdentifier], blockingUrl: Option[String]): ScrapeJob = {
+    new ScrapeJob(seedURL, webpageIdentifiers, blockingUrl, UUID.randomUUID().toString)
   }
 
   def apply(seedURL: String, webpageIdentifiers: Seq[WebpageIdentifier]): ScrapeJob = {
-    new ScrapeJob(createCorrectUrl(seedURL), webpageIdentifiers, UUID.randomUUID().toString)
-  }
-
-  def unapply(arg: ScrapeJob): Option[(String, Seq[WebpageIdentifier], String)] = {
-    Some((arg.seedURL, arg.webpageIdentifiers, arg.jobId))
+    new ScrapeJob(createCorrectUrl(seedURL), webpageIdentifiers, jobId = UUID.randomUUID().toString)
   }
 
   private def createCorrectUrl(url: String) = {

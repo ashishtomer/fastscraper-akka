@@ -25,11 +25,11 @@ class LinkManagerActor(context: ActorContext[LinkManagerActorMessage])
 
   override def onMessage(msg: LinkManagerActorMessage): Behavior[LinkManagerActorMessage] = {
     msg match {
-      case job @ ScrapeJob(seedURL, webpageIdentifiers, jobId) =>
+      case job @ ScrapeJob(seedURL, webpageIdentifiers, blockingUrl, jobId) =>
 
         logger.info(s"Getting a worker actor and starting scraping for job $jobId")
 
-        getWorkerActor(s"worker_actor_$jobId") ! StartScraping(seedURL, jobId, webpageIdentifiers)
+        getWorkerActor(s"worker_actor_$jobId") ! StartScraping(seedURL, blockingUrl, jobId, webpageIdentifiers)
 
         Behaviors.same[LinkManagerActorMessage]
     }

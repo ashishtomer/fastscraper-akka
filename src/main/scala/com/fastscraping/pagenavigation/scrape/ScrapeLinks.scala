@@ -6,6 +6,7 @@ import com.fastscraping.data.Database
 import com.fastscraping.model.Element
 import com.fastscraping.pagenavigation.scrape.ScrapeLinks.LinkWithText
 import com.fastscraping.pagenavigation.scrape.ScrapeType.SCRAPE_LINKS
+import com.fastscraping.pagenavigation.selenium.ElementFinder.FindElementBy
 import com.fastscraping.pagenavigation.selenium.PageReader
 import com.fastscraping.utils.Miscellaneous
 import play.api.libs.json.{Format, Json}
@@ -29,7 +30,7 @@ case class ScrapeLinks(linkMatch: Option[String] = Some(".+"),
     contextElement: Option[Element]) = Miscellaneous.PrintMetric("scraping links") {
     WithScroll {
 
-      val matchedLinks = pageReader.findElementsByCssSelector("a")
+      val matchedLinks = pageReader.findElements(FindElementBy.CSS_SELECTOR, "a")
         .filter(ele => Option(ele.getAttribute("href")).exists(_.matches(linkMatch.get)))
         .map(linkElement => LinkWithText(linkElement.getAttribute("href"), linkElement.getText))
 

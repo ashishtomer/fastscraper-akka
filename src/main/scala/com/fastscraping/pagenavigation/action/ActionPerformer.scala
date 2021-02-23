@@ -1,6 +1,7 @@
-package com.fastscraping.pagenavigation
+package com.fastscraping.pagenavigation.action
 
 import com.fastscraping.model.Element
+import com.fastscraping.pagenavigation.selenium.ElementFinder.FindElementBy
 import com.fastscraping.pagenavigation.selenium.PageReader
 import com.fastscraping.utils.ElementNotFoundException
 import org.openqa.selenium.WebElement
@@ -14,8 +15,8 @@ class ActionPerformer(val pageReader: PageReader) {
 
   case class WithElement(selector: String)(implicit contextElement: Option[Element]) {
     def map(f: WebElement => Actions): Boolean = {
-      val element = pageReader.findElementByCssSelector(selector)
-        .getOrElse(throw ElementNotFoundException(s"$selector not found on ${pageReader.getCurrentUrl}"))
+      val element = pageReader.findElement(FindElementBy.CSS_SELECTOR, selector)
+        .getOrElse(throw ElementNotFoundException(s"$selector not found on ${pageReader.currentUrl}"))
 
       f(element).perform()
 
@@ -23,8 +24,8 @@ class ActionPerformer(val pageReader: PageReader) {
     }
 
     def flatMap[A](f: WebElement => A): A = {
-      val element = pageReader.findElementByCssSelector(selector)
-        .getOrElse(throw ElementNotFoundException(s"$selector not found on ${pageReader.getCurrentUrl}"))
+      val element = pageReader.findElement(FindElementBy.CSS_SELECTOR, selector)
+        .getOrElse(throw ElementNotFoundException(s"$selector not found on ${pageReader.currentUrl}"))
 
       f(element)
     }

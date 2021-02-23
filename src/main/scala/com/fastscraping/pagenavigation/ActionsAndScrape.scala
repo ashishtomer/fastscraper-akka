@@ -1,6 +1,6 @@
 package com.fastscraping.pagenavigation
 
-import com.fastscraping.pagenavigation.action.Actions
+import com.fastscraping.pagenavigation.action.Action
 import com.fastscraping.pagenavigation.scrape.Scraping
 import com.fastscraping.pagenavigation.selenium.PageReader
 import com.fastscraping.utils.{JsonParsingException, JsonWriteException}
@@ -15,7 +15,7 @@ trait ActionsAndScrape {
 
 object ActionsAndScrape {
   private val reads: Reads[ActionsAndScrape] = (json: JsValue) => {
-    json.asOpt[Actions] match {
+    json.asOpt[Action] match {
       case Some(actions) => JsSuccess(actions)
       case None =>
         json.asOpt[Scraping] match {
@@ -27,7 +27,7 @@ object ActionsAndScrape {
   }
 
   private val writes: Writes[ActionsAndScrape] = {
-    case actions: Actions => Json.toJson(actions)
+    case actions: Action => Json.toJson(actions)
     case scraping: Scraping => Json.toJson(scraping)
     case obj: Any =>
       throw JsonWriteException(s"${obj.getClass} not instance of ${ActionsAndScrape.getClass}. Can't serialize.")

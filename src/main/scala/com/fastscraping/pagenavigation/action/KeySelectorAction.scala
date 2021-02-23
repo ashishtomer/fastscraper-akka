@@ -1,24 +1,23 @@
 package com.fastscraping.pagenavigation.action
 
-import com.fastscraping.model.{ActionNames, Element}
-import com.fastscraping.model.ActionNames._
-import com.fastscraping.pagenavigation.ActionPerformer
+import com.fastscraping.model.{ActionName, Element}
+import com.fastscraping.model.ActionName._
 import com.fastscraping.utils.Miscellaneous
 import org.openqa.selenium.Keys
 import play.api.libs.json.{Format, Json}
 
 
-case class KeySelectorActions(action: String,
-                              key: String,
-                              selector: Option[String],
-                              times: Option[Int] = Some(1),
-                              pauseBeforeActionMillis: Option[Long] = None) extends Actions {
+case class KeySelectorAction(action: String,
+                             key: String,
+                             selector: Option[String],
+                             times: Option[Int] = Some(1),
+                             pauseBeforeActionMillis: Option[Long] = None) extends Action {
 
   override val name = s"Action_${action}_WithKey_$key"
 
   override def perform(actionPerformer: ActionPerformer)(implicit contextElement: Option[Element]): Unit =
   Miscellaneous.PrintMetric(s"performing $action"){
-    ActionNames.withName(action) match {
+    ActionName.withName(action) match {
       case KEY_DOWN =>
         if (selector.isDefined) {
           actionPerformer.keyDown(selector.get, key)
@@ -26,7 +25,7 @@ case class KeySelectorActions(action: String,
           actionPerformer.keyDown(key)
         }
 
-        Actions.keyDown = Some(key)
+        Action.keyDown = Some(key)
 
       case KEY_UP =>
         if (selector.isDefined) {
@@ -35,21 +34,21 @@ case class KeySelectorActions(action: String,
           actionPerformer.keyUp(key)
         }
 
-        Actions.keyDown = None
+        Action.keyDown = None
 
       case SEND_KEYS =>
         if (selector.isDefined) {
-          actionPerformer.sendKeys(selector.get, KeySelectorActions.getSeleniumKey(key))
+          actionPerformer.sendKeys(selector.get, KeySelectorAction.getSeleniumKey(key))
         } else {
-          actionPerformer.sendKeys(KeySelectorActions.getSeleniumKey(key))
+          actionPerformer.sendKeys(KeySelectorAction.getSeleniumKey(key))
         }
 
     }
   }
 }
 
-object KeySelectorActions {
-  implicit val fmt: Format[KeySelectorActions] = Json.format[KeySelectorActions]
+object KeySelectorAction {
+  implicit val fmt: Format[KeySelectorAction] = Json.format[KeySelectorAction]
 
   import Keys._
 

@@ -6,9 +6,14 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity}
 import akka.http.scaladsl.server.Directives._
 import com.fastscraping.actor.message.{LinkManagerActorMessage, ScrapeJob}
+import com.fastscraping.model.ActionName._
 import com.fastscraping.model._
-import com.fastscraping.pagenavigation.scrape.ScrapeCrawlLinks.ScrapeLinksBy
-import com.fastscraping.pagenavigation.scrape.{ScrapeCrawlLinks, ScrapeData}
+import com.fastscraping.pagenavigation.action.FindElementAction
+import com.fastscraping.pagenavigation.scrape
+import com.fastscraping.pagenavigation.scrape.ScrapeCrawlLinks.CleanseLink
+import com.fastscraping.pagenavigation.scrape.ScrapeCrawlLinks.CleanseLinkMethod._
+import com.fastscraping.pagenavigation.scrape.ScrapeCrawlLinks.ScrapeLinksBy._
+import com.fastscraping.pagenavigation.scrape.{NextPage, ScrapeCrawlLinks, ScrapeData}
 import com.fastscraping.pagenavigation.selenium.ElementFinder.FindElementBy
 import com.fastscraping.utils.FsLogging
 
@@ -32,7 +37,7 @@ object HttpListeningActor extends FsLogging {
               Seq(UniqueString("EXPLORE INDIA'S LARGEST ONLINE STORE"))
             ),
             Seq(
-              PageWork(ScrapeCrawlLinks(ScrapeLinksBy.BY_TEXT.toString, "Toys & Games"))
+              PageWork(scrape.NextPage(FindElementAction(CLICK, FindElementBy.LINK_TEXT, "Toys & Games")), Some(Element(FindElementBy.ID, "categoryTilesSoftlines_127966")))
             )
           ),
           WebpageIdentifier(
@@ -53,8 +58,8 @@ object HttpListeningActor extends FsLogging {
               Seq(UniqueString("Sort by:", Some(Element(FindElementBy.ID, "a-autoid-0-announce"))))
             ),
             Seq(
-              PageWork(ScrapeCrawlLinks(ScrapeLinksBy.BY_SELECTOR.toString, "a.a-link-normal.a-text-normal")),
-              PageWork(ScrapeCrawlLinks(ScrapeLinksBy.BY_SELECTOR.toString, "li.a-normal a"), Some(Element(FindElementBy.CSS_SELECTOR, "div.a-text-center[role=\"navigation\"]")))
+              PageWork(ScrapeCrawlLinks(BY_SELECTOR, "a.a-link-normal.a-text-normal", Some(CleanseLink(SUBSTRING_TILL, "/ref=")))),
+              PageWork(ScrapeCrawlLinks(BY_SELECTOR, "li.a-last a", Some(CleanseLink(SUBSTRING_TILL, "/ref="))))
             )
           ),
           WebpageIdentifier(
@@ -92,7 +97,7 @@ object HttpListeningActor extends FsLogging {
           )
         )
 
-        linkManager ! ScrapeJob("https://www.amazon.in/b?ie=UTF8&node=6308595031", idfs)
+        linkManager ! ScrapeJob("https://www.amazon.in/b?ie=UTF8&node=6308595031", idfs, Some("https://www.amazon.in/gp/slredirect/picassoRedirect.html"))
         complete(HttpEntity(ContentTypes.`application/json`, "{\"message\":\"Scraping started\"}"))
       }
     }

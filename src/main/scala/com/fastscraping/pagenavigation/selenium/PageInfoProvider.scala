@@ -10,7 +10,7 @@ trait PageInfoProvider {
    *
    * @return The URL of the page currently loaded in the browser
    */
-  def getCurrentUrl: String = driver.getCurrentUrl
+  def currentUrl: String = driver.getCurrentUrl
 
   // General properties
 

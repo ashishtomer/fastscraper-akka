@@ -3,7 +3,8 @@ package com.fastscraping.pagenavigation.scrape
 import com.fastscraping.data.Database
 import com.fastscraping.model.Element
 import com.fastscraping.pagenavigation.selenium.PageReader
-import com.fastscraping.pagenavigation.{ActionPerformer, ActionsAndScrape}
+import com.fastscraping.pagenavigation.ActionsAndScrape
+import com.fastscraping.pagenavigation.action.ActionPerformer
 import com.fastscraping.utils.{ElementNotFoundException, FsLogging, JsonParsingException, JsonWriteException}
 import play.api.libs.json._
 

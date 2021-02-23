@@ -1,15 +1,14 @@
 package com.fastscraping.pagenavigation.action
 
-import com.fastscraping.model.{ActionNames, Element}
-import com.fastscraping.model.ActionNames.{CLICK, CLICK_AND_HOLD, CONTEXT_CLICK, DOUBLE_CLICK, MOUSE_OVER_ELEMENT, MOVE_TO_ELEMENT, RELEASE, RIGHT_CLICK}
-import com.fastscraping.pagenavigation.ActionPerformer
+import com.fastscraping.model.{ActionName, Element}
+import com.fastscraping.model.ActionName.{CLICK, CLICK_AND_HOLD, CONTEXT_CLICK, DOUBLE_CLICK, MOUSE_OVER_ELEMENT, MOVE_TO_ELEMENT, RELEASE, RIGHT_CLICK}
 import com.fastscraping.utils.Miscellaneous
 import play.api.libs.json.{Format, Json}
 
-case class SelectorActions(action: String,
-                           selector: Option[String],
-                           times: Option[Int] = Some(1),
-                           pauseBeforeActionMillis: Option[Long] = None) extends Actions {
+case class SelectorAction(action: String,
+                          selector: Option[String],
+                          times: Option[Int] = Some(1),
+                          pauseBeforeActionMillis: Option[Long] = None) extends Action {
 
   override val name = s"Action_${action}_On_$selector"
 
@@ -17,7 +16,7 @@ case class SelectorActions(action: String,
     Miscellaneous.PrintMetric(s"performing $action") {
       performMultiple(actionPerformer) {
         withKeyDownChecked(actionPerformer) {
-          ActionNames.withName(action) match {
+          ActionName.withName(action) match {
             case CLICK =>
               if (selector.isDefined) {
                 actionPerformer.click(selector.get)
@@ -68,6 +67,6 @@ case class SelectorActions(action: String,
   }
 }
 
-object SelectorActions {
-  implicit val fmt: Format[SelectorActions] = Json.format[SelectorActions]
+object SelectorAction {
+  implicit val fmt: Format[SelectorAction] = Json.format[SelectorAction]
 }

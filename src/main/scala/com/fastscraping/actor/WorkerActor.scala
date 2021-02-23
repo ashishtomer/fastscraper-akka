@@ -50,19 +50,21 @@ class WorkerActor(context: ActorContext[WorkerActorMessage])
   private lazy val options = new ChromeOptions()
   private lazy val driver: RemoteWebDriver = new ChromeDriver(options.addArguments("start-maximized",
     "disable-infobars", "--disable-extensions", "--disable-dev-shm-usage", "--no-sandbox"))
+  private var jobExecutor: ScrapeJobExecutor = _
 
   override def onMessage(msg: WorkerActorMessage): Behavior[WorkerActorMessage] = startScraping(msg)
 
   def startScraping(msg: WorkerActorMessage): Behavior[WorkerActorMessage] = msg match {
-    case StartScraping(seedUrl, jobId, webpageIdentifiers) =>
+    case StartScraping(seedUrl, blockingUrl, jobId, webpageIdentifiers) =>
       if (webpageIdentifiers.isEmpty) {
         throw IncorrectScrapeJob("No web page identifier found")
       }
 
       val db = FsMongoDB(MongoProvider.getDatabase(Some(jobId)))
+      jobExecutor = ScrapeJobExecutor()(pageReader, db)
       linkQueue.enqueue(seedUrl)
       val identifiers: ListBuffer[WebpageIdentifier] = ListBuffer(webpageIdentifiers:_*)
-      context.self ! ScrapeNextPage(identifiers, Some(jobId), db)
+      context.self ! ScrapeNextPage(identifiers, blockingUrl, Some(jobId), db)
       Behaviors.same[WorkerActorMessage]
 
     case readNext: ScrapeNextPage =>
@@ -73,11 +75,10 @@ class WorkerActor(context: ActorContext[WorkerActorMessage])
 
         case Success(link) =>
           val startTime = System.currentTimeMillis()
-          ScrapeJobExecutor()(pageReader, db)
-            .execute(link, webpageIdentifiers, jobId)
+          jobExecutor.execute(link, webpageIdentifiers, blockingUrl, jobId)
             .map { _ =>
               logger.info(s"time taken in scraping link: ${System.currentTimeMillis() - startTime}")
-              self ! ScrapeNextPage(webpageIdentifiers, jobId, db)
+              self ! ScrapeNextPage(webpageIdentifiers, blockingUrl, jobId, db)
             }
 
 
@@ -86,7 +87,7 @@ class WorkerActor(context: ActorContext[WorkerActorMessage])
 
             case links: mutable.Buffer[CrawlLink] if links.nonEmpty =>
               linkQueue.enqueueAll(links.map(_._link_to_crawl))
-              self ! ScrapeNextPage(webpageIdentifiers, jobId, db)
+              self ! ScrapeNextPage(webpageIdentifiers, blockingUrl, jobId, db)
 
             case NonFatal(ex) =>
               logger.error(s"Could not find links to scrape. Stopping scraping. ${ex.getMessage}")
