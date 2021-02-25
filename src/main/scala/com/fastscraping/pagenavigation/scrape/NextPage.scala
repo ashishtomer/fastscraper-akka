@@ -6,6 +6,7 @@ import com.fastscraping.pagenavigation.action.{Action, ActionPerformer}
 import com.fastscraping.pagenavigation.selenium.PageReader
 import com.fastscraping.utils.Miscellaneous
 import com.fastscraping.utils.Miscellaneous.{IS_CRAWLED, _LINK_TO_CRAWL}
+import play.api.libs.json.Json
 
 case class NextPage(withAction: Action,
                     doScrollDown: Option[Boolean] = None,
@@ -31,4 +32,8 @@ case class NextPage(withAction: Action,
     Seq(PageData(collectionName(jobId), document))
   }
 
+}
+
+object NextPage {
+  implicit val fmt = Json.format[NextPage]
 }
