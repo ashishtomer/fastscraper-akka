@@ -60,5 +60,12 @@ case class FindElementAction(action: ActionName,
 }
 
 object FindElementAction {
-  implicit val sprayJsonFmt: JsonFormat[FindElementAction] = jsonFormat6(FindElementAction.apply)
+  implicit val sprayJsonFmt: JsonFormat[FindElementAction] = jsonFormat(FindElementAction.apply,
+    "action",
+    "findElementBy",
+    "value",
+    "multiple",
+    "times",
+    "pauseBeforeActionMillis"
+  )
 }

@@ -37,5 +37,7 @@ case class NextPage(withAction: Action,
 }
 
 object NextPage {
-  implicit val sprayJsonFmt: RootJsonFormat[NextPage] = jsonFormat3(NextPage.apply)
+  implicit val sprayJsonFmt: RootJsonFormat[NextPage] = {
+    jsonFormat(NextPage.apply, "withAction", "doScrollDown", "scrollRetries")
+  }
 }

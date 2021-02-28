@@ -53,34 +53,6 @@ trait Scraping extends ActionsAndScrape with FsLogging {
 }
 
 object Scraping {
-
-  /*implicit val reads: Reads[Scraping] = (json: JsValue) => try {
-    JsSuccess {
-      val jsonFields = json.as[JsObject].keys
-      if (jsonFields.contains("selector") && jsonFields.contains("dataToExtract")) {
-        json.as[ScrapeData]
-      } else if (jsonFields.contains("withAction")) {
-        json.as[NextPage]
-      } else if (jsonFields.contains("findCrawlLinksBy") && jsonFields.contains("value")) {
-        json.as[ScrapeCrawlLinks]
-      } else if (jsonFields.contains("linkMatch")) {
-        json.as[ScrapeLinks]
-      } else {
-        throw JsonParsingException("Scraping couldn't be parsed", Some(Json.prettyPrint(json)))
-      }
-    }
-  } catch {
-    case ex: JsonParsingException if ex.getMessage.contains("Scraping couldn't be parsed") => JsError()
-  }
-
-  implicit val writes: Writes[Scraping] = {
-    case s: ScrapeData => Json.toJson(s)
-    case s: ScrapeLinks => Json.toJson(s)
-    case s: ScrapeCrawlLinks => Json.toJson(s)
-    case s: NextPage => Json.toJson(s)
-    case o => throw JsonWriteException(s"$o is not an instance of ${Scraping.getClass}")
-  }*/
-
   implicit val sprayJsonFmt = new RootJsonFormat[Scraping] {
     override def read(json: JsValue): Scraping = {
       val jsonFields = json.asJsObject.fields

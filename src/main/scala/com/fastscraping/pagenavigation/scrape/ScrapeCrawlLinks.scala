@@ -11,7 +11,7 @@ import com.fastscraping.utils.EnumSprayJsonFormat
 import com.fastscraping.utils.Miscellaneous._
 import org.openqa.selenium.WebElement
 import spray.json.DefaultJsonProtocol._
-import spray.json.{DefaultJsonProtocol, JsValue}
+import spray.json.JsValue
 
 case class ScrapeCrawlLinks(findCrawlLinksBy: ScrapeLinksBy,
                             value: String,
@@ -81,5 +81,9 @@ object ScrapeCrawlLinks {
     implicit val sprayJsonFmt = EnumSprayJsonFormat(ScrapeLinksBy)
   }
 
-  implicit val sprayJsonFmt = jsonFormat5(ScrapeCrawlLinks.apply)
+  implicit val sprayJsonFmt = jsonFormat(ScrapeCrawlLinks.apply, "findCrawlLinksBy",
+    "value",
+    "cleanseLink",
+    "doScrollDown",
+    "scrollRetries")
 }
