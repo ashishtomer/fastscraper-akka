@@ -3,35 +3,36 @@ package com.fastscraping.pagenavigation
 import com.fastscraping.pagenavigation.action.Action
 import com.fastscraping.pagenavigation.scrape.Scraping
 import com.fastscraping.pagenavigation.selenium.PageReader
-import com.fastscraping.utils.{JsonParsingException, JsonWriteException}
-import play.api.libs.json._
+import spray.json
+import spray.json.{JsValue, RootJsonFormat}
+
+import scala.util.{Failure, Success, Try}
 
 trait ActionsAndScrape {
   def name: String
+
   def scrollDown(pageReader: PageReader): AnyRef = {
     pageReader.executeScript("window.scrollTo(0, document.body.scrollHeight)")
   }
+
+  def toJson: JsValue
 }
 
 object ActionsAndScrape {
-  private val reads: Reads[ActionsAndScrape] = (json: JsValue) => {
-    json.asOpt[Action] match {
-      case Some(actions) => JsSuccess(actions)
-      case None =>
-        json.asOpt[Scraping] match {
-          case Some(scrapeData) => JsSuccess(scrapeData)
-          case None =>
-            throw JsonParsingException("Could not parse json to either of Actions and ScrapeData", Some(json.toString))
-        }
+
+  implicit val sprayJsonFmt = new RootJsonFormat[ActionsAndScrape]{
+    override def write(obj: ActionsAndScrape): JsValue = obj.toJson
+
+
+    override def read(js: json.JsValue): ActionsAndScrape = {
+      Try(js.convertTo[Action]) match {
+        case Success(action) => action
+        case Failure(exception) => js.convertTo[Scraping]
+      }
     }
   }
 
-  private val writes: Writes[ActionsAndScrape] = {
-    case actions: Action => Json.toJson(actions)
-    case scraping: Scraping => Json.toJson(scraping)
-    case obj: Any =>
-      throw JsonWriteException(s"${obj.getClass} not instance of ${ActionsAndScrape.getClass}. Can't serialize.")
-  }
 
-  implicit val fmt: Format[ActionsAndScrape] = Format(reads, writes)
+
+
 }

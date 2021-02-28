@@ -1,9 +1,11 @@
 package com.fastscraping.model
 
-import play.api.libs.json.Json
+import spray.json.DefaultJsonProtocol._
+import spray.json.JsonFormat
 
 case class WebpageIdentifier(pageUniqueness: PageUniqueness, pageWorks: Seq[PageWork])
 
 object WebpageIdentifier {
-  implicit val fmt = Json.format[WebpageIdentifier]
+  implicit val sprayJsonFmt: JsonFormat[WebpageIdentifier] = jsonFormat2(WebpageIdentifier.apply)
+
 }

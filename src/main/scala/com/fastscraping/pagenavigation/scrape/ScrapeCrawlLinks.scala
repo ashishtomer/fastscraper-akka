@@ -7,11 +7,11 @@ import com.fastscraping.pagenavigation.scrape.ScrapeCrawlLinks.ScrapeLinksBy.Scr
 import com.fastscraping.pagenavigation.scrape.ScrapeType.SCRAPE_CRAWL_LINKS
 import com.fastscraping.pagenavigation.selenium.ElementFinder.FindElementBy
 import com.fastscraping.pagenavigation.selenium.PageReader
-import com.fastscraping.utils.EnumFormat
+import com.fastscraping.utils.EnumSprayJsonFormat
 import com.fastscraping.utils.Miscellaneous._
 import org.openqa.selenium.WebElement
-import play.api.libs.json.{Format, Json}
-
+import spray.json.DefaultJsonProtocol._
+import spray.json.{DefaultJsonProtocol, JsValue}
 
 case class ScrapeCrawlLinks(findCrawlLinksBy: ScrapeLinksBy,
                             value: String,
@@ -69,14 +69,17 @@ case class ScrapeCrawlLinks(findCrawlLinksBy: ScrapeLinksBy,
         .filter(ele => Option(ele.getAttribute("href")).exists(_.matches(value)))
     }
   }
+
+  override def toJson: JsValue = ScrapeCrawlLinks.sprayJsonFmt.write(this)
 }
 
 object ScrapeCrawlLinks {
+
   object ScrapeLinksBy extends Enumeration {
     type ScrapeLinksBy = Value
     val BY_SELECTOR, BY_REGEX, BY_TEXT, BY_PARTIAL_TEXT = Value
-    implicit val fmt = EnumFormat(ScrapeLinksBy)
+    implicit val sprayJsonFmt = EnumSprayJsonFormat(ScrapeLinksBy)
   }
 
-  implicit val fmt: Format[ScrapeCrawlLinks] = Json.format[ScrapeCrawlLinks]
+  implicit val sprayJsonFmt = jsonFormat5(ScrapeCrawlLinks.apply)
 }

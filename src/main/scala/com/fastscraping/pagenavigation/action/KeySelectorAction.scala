@@ -1,10 +1,11 @@
 package com.fastscraping.pagenavigation.action
 
-import com.fastscraping.model.{ActionName, Element}
+import com.fastscraping.model.{ActionName, Element, PageWork}
 import com.fastscraping.model.ActionName._
 import com.fastscraping.utils.Miscellaneous
 import org.openqa.selenium.Keys
-import play.api.libs.json.{Format, Json}
+import spray.json.DefaultJsonProtocol._
+import spray.json.JsonFormat
 
 
 case class KeySelectorAction(action: String,
@@ -45,10 +46,12 @@ case class KeySelectorAction(action: String,
 
     }
   }
+
+  def toJson = KeySelectorAction.sprayJsonFmt.write(this)
 }
 
 object KeySelectorAction {
-  implicit val fmt: Format[KeySelectorAction] = Json.format[KeySelectorAction]
+  implicit val sprayJsonFmt: JsonFormat[KeySelectorAction] = jsonFormat5(KeySelectorAction.apply)
 
   import Keys._
 

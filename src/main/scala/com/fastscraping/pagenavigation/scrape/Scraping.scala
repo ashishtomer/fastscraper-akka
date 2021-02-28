@@ -4,9 +4,9 @@ import com.fastscraping.data.Database
 import com.fastscraping.model.Element
 import com.fastscraping.pagenavigation.selenium.PageReader
 import com.fastscraping.pagenavigation.ActionsAndScrape
-import com.fastscraping.pagenavigation.action.ActionPerformer
+import com.fastscraping.pagenavigation.action.{Action, ActionPerformer}
 import com.fastscraping.utils.{ElementNotFoundException, FsLogging, JsonParsingException, JsonWriteException}
-import play.api.libs.json._
+import spray.json.{JsValue, RootJsonFormat}
 
 import scala.util.control.NonFatal
 
@@ -54,7 +54,7 @@ trait Scraping extends ActionsAndScrape with FsLogging {
 
 object Scraping {
 
-  implicit val reads: Reads[Scraping] = (json: JsValue) => try {
+  /*implicit val reads: Reads[Scraping] = (json: JsValue) => try {
     JsSuccess {
       val jsonFields = json.as[JsObject].keys
       if (jsonFields.contains("selector") && jsonFields.contains("dataToExtract")) {
@@ -79,5 +79,30 @@ object Scraping {
     case s: ScrapeCrawlLinks => Json.toJson(s)
     case s: NextPage => Json.toJson(s)
     case o => throw JsonWriteException(s"$o is not an instance of ${Scraping.getClass}")
+  }*/
+
+  implicit val sprayJsonFmt = new RootJsonFormat[Scraping] {
+    override def read(json: JsValue): Scraping = {
+      val jsonFields = json.asJsObject.fields
+      if (jsonFields.contains("selector") && jsonFields.contains("dataToExtract")) {
+        json.convertTo[ScrapeData]
+      } else if (jsonFields.contains("withAction")) {
+        json.convertTo[NextPage]
+      } else if (jsonFields.contains("findCrawlLinksBy") && jsonFields.contains("value")) {
+        json.convertTo[ScrapeCrawlLinks]
+      } else if (jsonFields.contains("linkMatch")) {
+        json.convertTo[ScrapeLinks]
+      } else {
+        throw JsonParsingException("Scraping couldn't be parsed", Some(json.prettyPrint))
+      }
+    }
+
+    override def write(obj: Scraping): JsValue = obj match {
+      case s: ScrapeData => s.toJson
+      case s: ScrapeLinks => s.toJson
+      case s: ScrapeCrawlLinks => s.toJson
+      case s: NextPage => s.toJson
+      case o => throw JsonWriteException(s"$o is not an instance of ${Scraping.getClass}")
+    }
   }
 }

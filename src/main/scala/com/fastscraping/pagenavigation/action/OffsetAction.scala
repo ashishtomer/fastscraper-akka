@@ -3,7 +3,8 @@ package com.fastscraping.pagenavigation.action
 import com.fastscraping.model.{ActionName, Element}
 import com.fastscraping.model.ActionName.{DRAG_AND_DROP_BY, MOVE_BY_OFFSET, MOVE_TO_ELEMENT}
 import com.fastscraping.utils.Miscellaneous
-import play.api.libs.json.{Format, Json}
+import spray.json.DefaultJsonProtocol._
+import spray.json.JsonFormat
 
 case class OffsetAction(action: String,
                         xOffset: Int,
@@ -33,8 +34,11 @@ case class OffsetAction(action: String,
 
       }
     }
+
+  def toJson = OffsetAction.sprayJsonFmt.write(this)
+
 }
 
 object OffsetAction {
-  implicit val fmt: Format[OffsetAction] = Json.format[OffsetAction]
+  implicit val sprayJsonFmt: JsonFormat[OffsetAction] = jsonFormat6(OffsetAction.apply)
 }

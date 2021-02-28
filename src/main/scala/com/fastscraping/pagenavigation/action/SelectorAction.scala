@@ -3,7 +3,8 @@ package com.fastscraping.pagenavigation.action
 import com.fastscraping.model.{ActionName, Element}
 import com.fastscraping.model.ActionName.{CLICK, CLICK_AND_HOLD, CONTEXT_CLICK, DOUBLE_CLICK, MOUSE_OVER_ELEMENT, MOVE_TO_ELEMENT, RELEASE, RIGHT_CLICK}
 import com.fastscraping.utils.Miscellaneous
-import play.api.libs.json.{Format, Json}
+import spray.json.DefaultJsonProtocol._
+import spray.json.{JsonFormat, RootJsonFormat}
 
 case class SelectorAction(action: String,
                           selector: Option[String],
@@ -65,8 +66,10 @@ case class SelectorAction(action: String,
       }
     }
   }
+
+  def toJson = SelectorAction.sprayJsonFmt.write(this)
 }
 
 object SelectorAction {
-  implicit val fmt: Format[SelectorAction] = Json.format[SelectorAction]
+  implicit val sprayJsonFmt: RootJsonFormat[SelectorAction] = jsonFormat4(SelectorAction.apply)
 }

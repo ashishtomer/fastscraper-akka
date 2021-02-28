@@ -3,10 +3,10 @@ package com.fastscraping.pagenavigation.selenium
 import com.fastscraping.model.Element
 import com.fastscraping.pagenavigation.action.ActionPerformer
 import com.fastscraping.pagenavigation.selenium.ElementFinder.PageContext
-import com.fastscraping.utils.{EnumFormat, FsLogging}
+import com.fastscraping.utils.{EnumSprayJsonFormat, FsLogging}
 import org.openqa.selenium.remote.RemoteWebDriver
 import org.openqa.selenium.{By, NoSuchElementException, WebElement}
-import play.api.libs.json.Format
+import spray.json.JsonFormat
 
 import scala.jdk.CollectionConverters._
 import scala.util.control.NonFatal
@@ -141,7 +141,7 @@ object ElementFinder extends FsLogging {
   object FindElementBy extends Enumeration {
     type FindElementBy = Value
     val X_PATH, TAG_NAME, CSS_SELECTOR, NAME, PARTIAL_LINK_TEXT, LINK_TEXT, CLASS_NAME, ID, TEXT = Value
-    implicit val fmt: Format[ElementFinder.FindElementBy.Value] = EnumFormat(FindElementBy)
+    implicit val sprayJsonFmt: JsonFormat[ElementFinder.FindElementBy.Value] = EnumSprayJsonFormat(FindElementBy)
   }
 
   implicit class PageContext(webDriver: RemoteWebDriver) {

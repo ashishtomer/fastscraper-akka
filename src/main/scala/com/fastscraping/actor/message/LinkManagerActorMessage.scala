@@ -4,18 +4,23 @@ import java.net.URL
 import java.util.UUID
 
 import com.fastscraping.model.WebpageIdentifier
-import play.api.libs.json.Json
+import spray.json.DefaultJsonProtocol._
+import spray.json.{JsValue, JsonFormat, RootJsonFormat}
 
-trait LinkManagerActorMessage
+trait LinkManagerActorMessage {
+  def toJson: JsValue
+}
 
 case class ScrapeJob(seedURL: String,
-                webpageIdentifiers: Seq[WebpageIdentifier],
-                blockingUrl: Option[String] = None,
-                jobId: String = UUID.randomUUID().toString
-               ) extends LinkManagerActorMessage
+                     webpageIdentifiers: Seq[WebpageIdentifier],
+                     blockingUrl: Option[String] = None,
+                     jobId: String = UUID.randomUUID().toString
+                    ) extends LinkManagerActorMessage {
+  override def toJson: JsValue = ScrapeJob.sprayJsonFmt.write(this)
+}
 
 object ScrapeJob {
-  implicit val fmt = Json.format[ScrapeJob]
+  implicit val sprayJsonFmt: RootJsonFormat[ScrapeJob] = jsonFormat4(ScrapeJob.apply)
 
   def apply(seedURL: String, webpageIdentifiers: Seq[WebpageIdentifier], jobId: String): ScrapeJob = {
     new ScrapeJob(seedURL, webpageIdentifiers, jobId = jobId)

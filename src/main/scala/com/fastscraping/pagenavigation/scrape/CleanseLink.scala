@@ -1,8 +1,10 @@
 package com.fastscraping.pagenavigation.scrape
 
+import com.fastscraping.pagenavigation.scrape
 import com.fastscraping.pagenavigation.scrape.CleanseLinkMethod.CleanseLinkMethod
-import com.fastscraping.utils.EnumFormat
-import play.api.libs.json.{Format, Json}
+import com.fastscraping.utils.EnumSprayJsonFormat
+import spray.json.DefaultJsonProtocol._
+import spray.json.RootJsonFormat
 
 
 case class CleanseLink(cleanseLinkMethod: CleanseLinkMethod, value: String) {
@@ -20,12 +22,12 @@ case class CleanseLink(cleanseLinkMethod: CleanseLinkMethod, value: String) {
 }
 
 object CleanseLink {
-  implicit val fmt = Json.format[CleanseLink]
+  implicit val sprayJsonFmt = jsonFormat2(CleanseLink.apply)
 }
 
 object CleanseLinkMethod extends Enumeration {
   type CleanseLinkMethod = Value
   val SUBSTRING_TILL = Value
 
-  implicit val fmt: Format[CleanseLinkMethod.Value] = EnumFormat(CleanseLinkMethod)
+  implicit val sprayJsonFmt: RootJsonFormat[scrape.CleanseLinkMethod.Value] = EnumSprayJsonFormat(CleanseLinkMethod)
 }

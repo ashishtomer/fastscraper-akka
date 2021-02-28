@@ -1,9 +1,9 @@
 package com.fastscraping.model
 
-import com.fastscraping.pagenavigation.selenium.ElementFinder.FindElementBy
 import com.fastscraping.pagenavigation.selenium.ElementFinder.FindElementBy.{CLASS_NAME, CSS_SELECTOR, FindElementBy, ID, LINK_TEXT, NAME, PARTIAL_LINK_TEXT, TAG_NAME, TEXT, X_PATH}
 import org.openqa.selenium.remote.RemoteWebDriver
-import play.api.libs.json.Json
+import spray.json.DefaultJsonProtocol._
+import spray.json.JsonFormat
 
 import scala.util.{Failure, Success, Try}
 
@@ -27,5 +27,5 @@ case class Element(findBy: FindElementBy, value: String) {
 }
 
 object Element {
-  implicit lazy val fmt = Json.format[Element]
+  implicit val sprayJsonFmt: JsonFormat[Element] = jsonFormat2(Element.apply)
 }

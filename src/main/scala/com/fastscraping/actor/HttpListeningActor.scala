@@ -1,11 +1,13 @@
 package com.fastscraping.actor
 
 import akka.actor
+import akka.actor.Status.Success
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity}
 import akka.http.scaladsl.server.Directives._
+import akka.stream.Materializer
 import com.fastscraping.actor.message.{LinkManagerActorMessage, ScrapeJob}
 import com.fastscraping.model.ActionName._
 import com.fastscraping.model._
@@ -15,8 +17,8 @@ import com.fastscraping.pagenavigation.scrape.CleanseLinkMethod._
 import com.fastscraping.pagenavigation.scrape.ScrapeCrawlLinks.ScrapeLinksBy._
 import com.fastscraping.pagenavigation.scrape.{CleanseLink, ScrapeCrawlLinks, ScrapeData}
 import com.fastscraping.pagenavigation.selenium.ElementFinder.FindElementBy
+import com.fastscraping.server.SetupServer
 import com.fastscraping.utils.FsLogging
-import play.api.libs.json.Json
 
 object HttpListeningActor extends FsLogging {
 
@@ -29,16 +31,10 @@ object HttpListeningActor extends FsLogging {
   }
 
   private def listenHttpCalls(linkManager: ActorRef[LinkManagerActorMessage])(implicit as: actor.ActorSystem): Unit = {
-    val route = concat(
-      post {
-        path("scrape") {
-          entity(as[ScrapeJob]) { scrapeJob: ScrapeJob =>
-            linkManager ! scrapeJob
-            complete(HttpEntity(ContentTypes.`application/json`, "{\"message\":\"Scraping started with job ID:\"}"))
-          }
-        }
-      },
-      get {
+    implicit val mat: Materializer = Materializer(as)
+    import as.dispatcher
+    SetupServer(linkManager).onComplete(_ => logger.info("Started listening on http://0.0.0.0:8082/"))
+      /*get {
         path("scrape") {
           val idfs = Seq(
             WebpageIdentifier(
@@ -108,15 +104,11 @@ object HttpListeningActor extends FsLogging {
           )
 
           val scrapeJob = ScrapeJob("https://www.amazon.in/b?ie=UTF8&node=6308595031", idfs, Some("https://www.amazon.in/gp/slredirect/picassoRedirect.html"))
-          println(Json.prettyPrint(Json.toJson(scrapeJob)))
+          println(scrapeJob.toJson)
 
           complete(HttpEntity(ContentTypes.`application/json`, "{\"message\":\"Scraping started\"}"))
         }
-      })
-
-    val bindingFuture = Http()(as).newServerAt("0.0.0.0", 8082).bind(route)
-    logger.info("Started listening on http://0.0.0.0:8082/")
-
+      }*/
   }
 
 }

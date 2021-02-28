@@ -6,7 +6,8 @@ import com.fastscraping.model.{DataToExtract, Element}
 import com.fastscraping.pagenavigation.selenium.ElementFinder.FindElementBy.FindElementBy
 import com.fastscraping.pagenavigation.selenium.PageReader
 import com.fastscraping.utils.Miscellaneous
-import play.api.libs.json.Json
+import spray.json.DefaultJsonProtocol._
+import spray.json.{JsValue, RootJsonFormat}
 
 case class ScrapeData(by: FindElementBy,
                       value: String,
@@ -42,8 +43,10 @@ case class ScrapeData(by: FindElementBy,
         }
       }
     }
+
+  override def toJson: JsValue = ScrapeData.sprayJsonFmt.write(this)
 }
 
 object ScrapeData {
-  implicit val fmt = Json.format[ScrapeData]
+  implicit val sprayJsonFmt: RootJsonFormat[ScrapeData] = jsonFormat6(ScrapeData.apply)
 }

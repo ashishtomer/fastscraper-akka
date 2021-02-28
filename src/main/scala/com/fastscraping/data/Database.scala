@@ -2,7 +2,6 @@ package com.fastscraping.data
 
 import com.fastscraping.data.bson.CrawlLink
 import org.bson.Document
-import play.api.libs.json.JsValue
 
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}

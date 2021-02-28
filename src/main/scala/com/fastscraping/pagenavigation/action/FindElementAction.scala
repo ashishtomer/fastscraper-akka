@@ -5,7 +5,8 @@ import com.fastscraping.model.Element
 import com.fastscraping.pagenavigation.selenium.ElementFinder.FindElementBy._
 import com.fastscraping.utils.Miscellaneous
 import org.openqa.selenium.WebElement
-import play.api.libs.json.{Format, Json}
+import spray.json.DefaultJsonProtocol._
+import spray.json.{JsValue, JsonFormat}
 
 case class FindElementAction(action: ActionName,
                              findElementBy: FindElementBy,
@@ -54,8 +55,10 @@ case class FindElementAction(action: ActionName,
       }
     }
   }
+
+  override def toJson: JsValue = FindElementAction.sprayJsonFmt.write(this)
 }
 
 object FindElementAction {
-  implicit val fmt: Format[FindElementAction] = Json.format[FindElementAction]
+  implicit val sprayJsonFmt: JsonFormat[FindElementAction] = jsonFormat6(FindElementAction.apply)
 }

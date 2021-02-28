@@ -9,7 +9,8 @@ import com.fastscraping.pagenavigation.scrape.ScrapeType.SCRAPE_LINKS
 import com.fastscraping.pagenavigation.selenium.ElementFinder.FindElementBy
 import com.fastscraping.pagenavigation.selenium.PageReader
 import com.fastscraping.utils.Miscellaneous
-import play.api.libs.json.{Format, Json}
+import spray.json.{DefaultJsonProtocol, JsValue, RootJsonFormat}
+import DefaultJsonProtocol._
 
 import scala.jdk.CollectionConverters._
 
@@ -49,10 +50,12 @@ case class ScrapeLinks(linkMatch: Option[String] = Some(".+"),
           database.saveDocuments(collection, docs)
       }
   }
+
+  override def toJson: JsValue = ScrapeLinks.sprayJsonFmt.write(this)
 }
 
 object ScrapeLinks {
-  implicit val fmt: Format[ScrapeLinks] = Json.format[ScrapeLinks]
+  implicit val sprayJsonFmt: RootJsonFormat[ScrapeLinks] = jsonFormat4(ScrapeLinks.apply)
 
   def apply(linkMatch: String, indexName: String): ScrapeLinks = new ScrapeLinks(Some(linkMatch), indexName)
 
@@ -63,7 +66,7 @@ object ScrapeLinks {
   }
 
   object LinkWithText {
-    implicit val fmt: Format[LinkWithText] = Json.format[LinkWithText]
+    implicit val sprayJsonFmt: RootJsonFormat[LinkWithText] = jsonFormat2(LinkWithText.apply)
   }
 
 }

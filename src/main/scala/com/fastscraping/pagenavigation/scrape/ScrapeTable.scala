@@ -4,6 +4,7 @@ import com.fastscraping.model.Element
 import com.fastscraping.pagenavigation.selenium.ElementFinder.FindElementBy.FindElementBy
 import com.fastscraping.pagenavigation.selenium.PageReader
 import com.fastscraping.utils.Miscellaneous
+import spray.json.{JsObject, JsValue}
 
 case class ScrapeTable(by: FindElementBy,
                        value: String,
@@ -18,16 +19,11 @@ case class ScrapeTable(by: FindElementBy,
   override def scrape(jobId: Option[String])(
     implicit pageReader: PageReader,
     database: Database,
-    contextElement: Option[Element]): Seq[PageData] = ???
+    contextElement: Option[Element]): Seq[PageData] = {
+    Seq.empty[PageData]
+  }
 
-  override def doScrollDown: Option[Boolean] = ???
+  override def name: String = "SCRAPE_TABLE"
 
-  /**
-   * Number of retries to do. If the number is 0 no retry. If number is any number less than 0 then infinite scrolling
-   *
-   * @return
-   */
-  override def scrollRetries: Option[Int] = ???
-
-  override def name: String = ???
+  override def toJson: JsValue = JsObject.empty
 }

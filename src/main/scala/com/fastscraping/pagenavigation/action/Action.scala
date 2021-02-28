@@ -4,7 +4,8 @@ import com.fastscraping.model.Element
 import com.fastscraping.pagenavigation.ActionsAndScrape
 import com.fastscraping.utils.{FsLogging, JsonParsingException, JsonWriteException}
 import org.openqa.selenium.StaleElementReferenceException
-import play.api.libs.json._
+import spray.json
+import spray.json.{JsValue, RootJsonFormat}
 
 import scala.util.{Failure, Success, Try}
 
@@ -44,41 +45,37 @@ object Action {
   // It'll be set to None upon the adjacent action like CLICK, DOUBLE_CLICK etc
   var keyDown: Option[String] = None
 
-  implicit val reads: Reads[Action] = (json: JsValue) => try {
-    JsSuccess {
-      val jsonFields = json.as[JsObject].keys
+  implicit val sprayJsonFmt = new RootJsonFormat[Action] {
+    override def read(js: json.JsValue): Action = {
+      val jsonFields = js.asJsObject.fields
       if (jsonFields.contains("action") && jsonFields.contains("key")) {
-        json.as[KeySelectorAction]
+        js.convertTo[KeySelectorAction]
       } else if (jsonFields.contains("action") && jsonFields.contains("findElementBy") && jsonFields.contains("value")) {
-        json.as[FindElementAction]
+        js.convertTo[FindElementAction]
       } else if (jsonFields.contains("action") && jsonFields.contains("xOffset") && jsonFields.contains("yOffset")) {
-        json.as[OffsetAction]
+        js.convertTo[OffsetAction]
       } else if (jsonFields.contains("action") && jsonFields.contains("fromSelector") && jsonFields.contains("toSelector")) {
-        json.as[DragAndDropAction]
+        js.convertTo[DragAndDropAction]
       }
       else if (jsonFields.contains("action")) {
-        json.as[SelectorAction]
+        js.convertTo[SelectorAction]
       }
       else if (jsonFields.contains("pauseMillis")) {
-        json.as[TimeAction]
+        js.convertTo[TimeAction]
       }
       else {
-        throw JsonParsingException("Action couldn't be parsed", Some(Json.prettyPrint(json)))
+        throw JsonParsingException("Action couldn't be parsed", Some(js.prettyPrint))
       }
     }
-  } catch {
-    case ex: JsonParsingException if ex.getMessage.contains("Action couldn't be parsed") => JsError()
-  }
 
-  implicit val writes: Writes[Action] = {
-    case a: SelectorAction => Json.toJson(a)
-    case a: KeySelectorAction => Json.toJson(a)
-    case a: OffsetAction => Json.toJson(a)
-    case a: DragAndDropAction => Json.toJson(a)
-    case a: TimeAction => Json.toJson(a)
-    case a: FindElementAction => Json.toJson(a)
-    case o => throw JsonWriteException(s"$o is not an instance of ${Writes.getClass}")
+    override def write(obj: Action): JsValue = obj match {
+      case a: SelectorAction => SelectorAction.sprayJsonFmt.write(a)
+      case a: KeySelectorAction => KeySelectorAction.sprayJsonFmt.write(a)
+      case a: OffsetAction => OffsetAction.sprayJsonFmt.write(a)
+      case a: DragAndDropAction => DragAndDropAction.sprayJsonFmt.write(a)
+      case a: TimeAction => TimeAction.sprayJsonFmt.write(a)
+      case a: FindElementAction => FindElementAction.sprayJsonFmt.write(a)
+      case o => throw JsonWriteException(s"$o is not an instance of ${Action.getClass}")
+    }
   }
-
-  implicit val fmt: Format[Action] = Format(reads, writes)
 }

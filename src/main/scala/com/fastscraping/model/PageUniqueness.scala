@@ -1,9 +1,10 @@
 package com.fastscraping.model
 
-import play.api.libs.json.Json
+import spray.json.DefaultJsonProtocol._
+import spray.json.JsonFormat
 
 case class PageUniqueness(urlRegex: String, uniqueTags: Seq[UniqueTag], uniqueStrings: Seq[UniqueString])
 
 object PageUniqueness {
-  implicit val fmt = Json.format[PageUniqueness]
+  implicit val sprayJsonFmt: JsonFormat[PageUniqueness] = jsonFormat3(PageUniqueness.apply)
 }

@@ -6,7 +6,6 @@ import org.bson._
 import org.bson.codecs.configuration.CodecRegistry
 import org.bson.codecs.{Codec, DecoderContext, DocumentCodec, EncoderContext}
 import org.bson.conversions.Bson
-import play.api.libs.json.{Format, Json}
 import scala.jdk.CollectionConverters._
 
 case class CrawlLink(_link_to_crawl: String, is_crawled: Boolean) extends Bson {
@@ -23,9 +22,6 @@ case class CrawlLink(_link_to_crawl: String, is_crawled: Boolean) extends Bson {
 }
 
 object CrawlLink {
-
-  implicit val fmt: Format[CrawlLink] = Json.format[CrawlLink]
-
 
   class CrawlLinksCodec extends Codec[CrawlLink] {
     /**

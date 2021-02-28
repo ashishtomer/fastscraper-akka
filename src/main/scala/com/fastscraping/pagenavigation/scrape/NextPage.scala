@@ -6,7 +6,8 @@ import com.fastscraping.pagenavigation.action.{Action, ActionPerformer}
 import com.fastscraping.pagenavigation.selenium.PageReader
 import com.fastscraping.utils.Miscellaneous
 import com.fastscraping.utils.Miscellaneous.{IS_CRAWLED, _LINK_TO_CRAWL}
-import play.api.libs.json.Json
+import spray.json.DefaultJsonProtocol._
+import spray.json.{JsValue, RootJsonFormat}
 
 case class NextPage(withAction: Action,
                     doScrollDown: Option[Boolean] = None,
@@ -19,21 +20,22 @@ case class NextPage(withAction: Action,
   override def scrape(jobId: Option[String])(implicit pageReader: PageReader, database: Database,
                                              contextElement: Option[Element]): Seq[PageData] =
     Miscellaneous.PrintMetric("Navigating to next page") {
-    val actionPerformer = ActionPerformer(pageReader)
+      val actionPerformer = ActionPerformer(pageReader)
 
-    withAction.perform(actionPerformer)
-    val linkAfterNavigation = actionPerformer.pageReader.currentUrl
-    val document: Map[String, AnyRef] = Map(
-      _LINK_TO_CRAWL -> linkAfterNavigation.asInstanceOf[AnyRef],
-      "_id" -> linkAfterNavigation.asInstanceOf[AnyRef],
-      IS_CRAWLED -> false.asInstanceOf[AnyRef]
-    )
+      withAction.perform(actionPerformer)
+      val linkAfterNavigation = actionPerformer.pageReader.currentUrl
+      val document: Map[String, AnyRef] = Map(
+        _LINK_TO_CRAWL -> linkAfterNavigation.asInstanceOf[AnyRef],
+        "_id" -> linkAfterNavigation.asInstanceOf[AnyRef],
+        IS_CRAWLED -> false.asInstanceOf[AnyRef]
+      )
 
-    Seq(PageData(collectionName(jobId), document))
-  }
+      Seq(PageData(collectionName(jobId), document))
+    }
 
+  override def toJson: JsValue = NextPage.sprayJsonFmt.write(this)
 }
 
 object NextPage {
-  implicit val fmt = Json.format[NextPage]
+  implicit val sprayJsonFmt: RootJsonFormat[NextPage] = jsonFormat3(NextPage.apply)
 }
