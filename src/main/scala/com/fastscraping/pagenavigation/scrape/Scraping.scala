@@ -52,11 +52,11 @@ trait Scraping extends ActionsAndScrape with FsLogging {
   }
 }
 
-object Scraping {
+object Scraping extends FsLogging {
   implicit val sprayJsonFmt = new RootJsonFormat[Scraping] {
     override def read(json: JsValue): Scraping = {
       val jsonFields = json.asJsObject.fields
-      if (jsonFields.contains("selector") && jsonFields.contains("dataToExtract")) {
+      if (jsonFields.contains("by") && jsonFields.contains("dataToExtract")) {
         json.convertTo[ScrapeData]
       } else if (jsonFields.contains("withAction")) {
         json.convertTo[NextPage]

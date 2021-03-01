@@ -48,5 +48,11 @@ case class ScrapeData(by: FindElementBy,
 }
 
 object ScrapeData {
-  implicit val sprayJsonFmt: RootJsonFormat[ScrapeData] = jsonFormat6(ScrapeData.apply)
+  implicit val sprayJsonFmt: RootJsonFormat[ScrapeData] = jsonFormat(ScrapeData.apply,
+    "by",
+    "value",
+    "dataToExtract",
+    "index",
+    "doScrollDown",
+    "scrollRetries")
 }
