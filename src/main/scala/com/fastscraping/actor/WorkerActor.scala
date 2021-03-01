@@ -1,7 +1,5 @@
 package com.fastscraping.actor
 
-import java.util.concurrent.TimeUnit
-
 import akka.actor.typed.scaladsl.{AbstractBehavior, ActorContext, Behaviors}
 import akka.actor.typed.{ActorRef, Behavior}
 import com.fastscraping.actor.message.{ScrapeNextPage, StartScraping, WorkerActorMessage}
@@ -11,7 +9,6 @@ import com.fastscraping.model.WebpageIdentifier
 import com.fastscraping.pagenavigation.selenium.{PageReader, ScrapeJobExecutor}
 import com.fastscraping.utils.{FsLogging, IncorrectScrapeJob}
 import org.openqa.selenium.chrome.{ChromeDriver, ChromeOptions}
-import org.openqa.selenium.firefox.FirefoxDriver
 import org.openqa.selenium.remote.RemoteWebDriver
 
 import scala.collection.mutable
@@ -63,7 +60,7 @@ class WorkerActor(context: ActorContext[WorkerActorMessage])
       val db = FsMongoDB(MongoProvider.getDatabase(Some(jobId)))
       jobExecutor = ScrapeJobExecutor()(pageReader, db)
       linkQueue.enqueue(seedUrl)
-      val identifiers: ListBuffer[WebpageIdentifier] = ListBuffer(webpageIdentifiers:_*)
+      val identifiers: ListBuffer[WebpageIdentifier] = ListBuffer(webpageIdentifiers: _*)
       context.self ! ScrapeNextPage(identifiers, blockingUrl, Some(jobId), db)
       Behaviors.same[WorkerActorMessage]
 

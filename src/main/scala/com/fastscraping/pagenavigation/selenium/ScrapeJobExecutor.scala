@@ -5,7 +5,6 @@ import com.fastscraping.model.{ActionName, Element, PageWork, WebpageIdentifier}
 import com.fastscraping.pagenavigation.action.{Action, ActionPerformer, FindElementAction}
 import com.fastscraping.pagenavigation.scrape.{PageData, Scraping}
 import com.fastscraping.pagenavigation.selenium.ElementFinder.FindElementBy
-import com.fastscraping.pagenavigation.selenium.ScrapeJobExecutor._
 import com.fastscraping.utils.Miscellaneous._
 import com.fastscraping.utils.{FsLogging, MultipleMatchingIdentifiersException}
 import org.openqa.selenium.WebElement
@@ -22,14 +21,14 @@ class ScrapeJobExecutor(implicit pageReader: PageReader, db: Database) extends F
     pageReader.get(link)
 
     filterPageModifier(webpageIdentifiers) map {
-        case Some(webpageIdentifier) => PrintMetric("performing operations") {
-          performOperations(jobId, webpageIdentifier, blockingUrl)
-        }
-        case None => logger.warn(s"No webpage identifier matched with ${pageReader.currentUrl}")
-      } map { _ =>
-        db.markLinkAsScraped(jobId, link)
-        logger.info(s"Marked as scraped [link=$link]")
-      } recover {
+      case Some(webpageIdentifier) => PrintMetric("performing operations") {
+        performOperations(jobId, webpageIdentifier, blockingUrl)
+      }
+      case None => logger.warn(s"No webpage identifier matched with ${pageReader.currentUrl}")
+    } map { _ =>
+      db.markLinkAsScraped(jobId, link)
+      logger.info(s"Marked as scraped [link=$link]")
+    } recover {
       case ex: MultipleMatchingIdentifiersException =>
       //Do nothing for now
     }
@@ -48,7 +47,7 @@ class ScrapeJobExecutor(implicit pageReader: PageReader, db: Database) extends F
             val dataFromPage = scraping.scrape(jobId)
             if (dataFromPage.nonEmpty) scrapedData.appendAll(dataFromPage)
         }
-        blockingUrl.foreach(url => if(pageReader.currentUrl == url) clearCacheHistory)
+        blockingUrl.foreach(url => if (pageReader.currentUrl == url) clearCacheHistory)
         logger.info(s"[work=${pageWork.actionsAndScrapeData.name}] End")
       })
 

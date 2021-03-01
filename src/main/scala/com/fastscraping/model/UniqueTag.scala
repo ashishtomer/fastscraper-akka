@@ -1,7 +1,7 @@
 package com.fastscraping.model
 
 import spray.json.DefaultJsonProtocol._
-import spray.json.{DefaultJsonProtocol, JsonFormat}
+import spray.json.JsonFormat
 
 case class UniqueTag(selector: String, text: Option[String], contextElement: Option[Element] = None)
 

@@ -6,11 +6,8 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity}
 import akka.http.scaladsl.server.{Directives, Route}
-import akka.http.scaladsl.server.Directives.complete
 import akka.stream.Materializer
-import com.fastscraping.actor.LinkManagerActor
 import com.fastscraping.actor.message.{LinkManagerActorMessage, ScrapeJob}
-import spray.json.DefaultJsonProtocol
 
 import scala.concurrent.Future
 
@@ -25,7 +22,6 @@ object SetupServer extends Directives with SprayJsonSupport {
       }
     }
   }
-
 
 
   def apply(linkManagerActor: ActorRef[LinkManagerActorMessage])(implicit as: ActorSystem, mat: Materializer): Future[Http.ServerBinding] = {

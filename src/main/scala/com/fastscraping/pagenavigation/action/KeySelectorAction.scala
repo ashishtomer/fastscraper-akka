@@ -1,7 +1,7 @@
 package com.fastscraping.pagenavigation.action
 
-import com.fastscraping.model.{ActionName, Element, PageWork}
 import com.fastscraping.model.ActionName._
+import com.fastscraping.model.{ActionName, Element}
 import com.fastscraping.utils.Miscellaneous
 import org.openqa.selenium.Keys
 import spray.json.DefaultJsonProtocol._
@@ -17,35 +17,35 @@ case class KeySelectorAction(action: String,
   override val name = s"Action_${action}_WithKey_$key"
 
   override def perform(actionPerformer: ActionPerformer)(implicit contextElement: Option[Element]): Unit =
-  Miscellaneous.PrintMetric(s"performing $action"){
-    ActionName.withName(action) match {
-      case KEY_DOWN =>
-        if (selector.isDefined) {
-          actionPerformer.keyDown(selector.get, key)
-        } else {
-          actionPerformer.keyDown(key)
-        }
+    Miscellaneous.PrintMetric(s"performing $action") {
+      ActionName.withName(action) match {
+        case KEY_DOWN =>
+          if (selector.isDefined) {
+            actionPerformer.keyDown(selector.get, key)
+          } else {
+            actionPerformer.keyDown(key)
+          }
 
-        Action.keyDown = Some(key)
+          Action.keyDown = Some(key)
 
-      case KEY_UP =>
-        if (selector.isDefined) {
-          actionPerformer.keyUp(selector.get, key)
-        } else {
-          actionPerformer.keyUp(key)
-        }
+        case KEY_UP =>
+          if (selector.isDefined) {
+            actionPerformer.keyUp(selector.get, key)
+          } else {
+            actionPerformer.keyUp(key)
+          }
 
-        Action.keyDown = None
+          Action.keyDown = None
 
-      case SEND_KEYS =>
-        if (selector.isDefined) {
-          actionPerformer.sendKeys(selector.get, KeySelectorAction.getSeleniumKey(key))
-        } else {
-          actionPerformer.sendKeys(KeySelectorAction.getSeleniumKey(key))
-        }
+        case SEND_KEYS =>
+          if (selector.isDefined) {
+            actionPerformer.sendKeys(selector.get, KeySelectorAction.getSeleniumKey(key))
+          } else {
+            actionPerformer.sendKeys(KeySelectorAction.getSeleniumKey(key))
+          }
 
+      }
     }
-  }
 
   def toJson = KeySelectorAction.sprayJsonFmt.write(this)
 }

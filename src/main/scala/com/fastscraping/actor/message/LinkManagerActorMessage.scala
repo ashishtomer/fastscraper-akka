@@ -5,7 +5,7 @@ import java.util.UUID
 
 import com.fastscraping.model.WebpageIdentifier
 import spray.json.DefaultJsonProtocol._
-import spray.json.{JsValue, JsonFormat, RootJsonFormat}
+import spray.json.{JsValue, RootJsonFormat}
 
 trait LinkManagerActorMessage {
   def toJson: JsValue

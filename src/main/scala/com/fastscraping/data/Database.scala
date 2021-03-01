@@ -4,13 +4,13 @@ import com.fastscraping.data.bson.CrawlLink
 import org.bson.Document
 
 import scala.collection.mutable
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 trait Database {
   /**
    * @param collection The collection or table in the database
-   * @param index Name of the column or index under which the text will be stored
-   * @param text The text data itself
+   * @param index      Name of the column or index under which the text will be stored
+   * @param text       The text data itself
    * @param documentId Find the document with `documentId` and save text under
    */
   def saveText(collection: String, documentId: String, index: String, text: String)
@@ -33,5 +33,7 @@ trait Database {
 }
 
 object Database {
+
   case class NextScrapeLink(link: String)
+
 }
